@@ -1,6 +1,6 @@
 <launch>
     <node name="turner_teleop" pkg="imageproc_ros" type="teleop.py">
-        <rosparam param="device">/dev/ttyUSB0 </rosparam>
+        <rosparam param="device">/dev/ttySAC1 </rosparam>
     </node>
     <node name="turtlebot_teleop_key" pkg="imageproc_ros" type="twist_keyboard.py" output="screen">
     </node>
