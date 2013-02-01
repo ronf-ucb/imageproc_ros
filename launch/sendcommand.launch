@@ -1,0 +1,10 @@
+<launch>
+ <!-- separate startup for just robot python node for debugging -->
+    <node pkg="Turner25" 
+    	  name="SendCommandRobot" 
+	  type="turner_commands.py"
+	  launch-prefix="nice -n 10  xterm -bg yellow -fg black -geometry 64x24+200+500 -title 'SendCommandRobot Debug Info' -e"
+	  >
+    	<remap from="velCmd" to="Velocity"/>
+    </node>
+</launch>

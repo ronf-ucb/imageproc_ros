@@ -1,0 +1,17 @@
+<package>
+  <description brief="Turner25">
+
+     Turner25 - first attempt at ROS node for ImageProc 2.5 
+
+  </description>
+  <author>Ron Fearing</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>https://github.com/ronf-ucb/turner-ip2.5</url>
+  <depend package="std_msgs"/>
+  <depend package="rospy"/>
+  <depend package="roscpp"/>
+
+</package>
+
+
