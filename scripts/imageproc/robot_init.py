@@ -60,7 +60,7 @@ RESET_ROBOT = False
 # try just left motor
 motorgains = [400,0,400,0,0, 400,0,400,0,0]
 throttle = [0,0]
-duration = 512  # length of run
+duration = [512,512]  # length of run
 cycle = 512 # ms for a leg cycle
 # velocity profile
 # [time intervals for setpoints]

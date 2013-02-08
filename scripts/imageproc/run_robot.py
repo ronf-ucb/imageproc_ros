@@ -37,10 +37,73 @@ def setThrust(throttle0, throttle1, duration):
     print "cmdSetThrust " + str(thrust)
 
 
+# run legs in closed loop, with different number of left/right steps
+
+def setThrustClosedLoop(leftTime,rightTime):
+    thrust = [throttle[0], leftTime, throttle[1], rightTime, 0]
+    xb_send(0, command.SET_THRUST_CLOSED_LOOP, pack('5h',*thrust))
+    print "Throttle[0,1] = ",throttle[0],throttle[1],\
+          "left", leftTime,"right", rightTime
+
+# get one packet of PID data from robot
+def getPIDdata():
+    count = 0
+    shared.pkts = 0   # reset packet count
+    dummy_data = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+    # data format '=LLll'+13*'h' 
+    shared.imudata = [] #reset stored data
+    xb_send(0, command.GET_PID_TELEMETRY, pack('h',0))
+    time.sleep(0.05)
+    while shared.pkts == 0:
+        print "\n Retry after 0.5 seconds. Got only %d pacPIDkets" %shared.pkts
+        time.sleep(0.5)
+        count = count + 1
+        if count > 10:
+            print 'no return packet'
+            shared.imudata.append(dummy_data) # use dummy data
+            break   
+    data = shared.imudata[0]  # convert string list to numbers
+  #  print 'index =', data[0]
+  #  print 'time = ', data[1]    # time is in microseconds
+  #  print 'mpos=', data[2:4]
+  #  print 'pwm=',data[4:6]
+  #  print 'imu=',data[6:13]
+  #  print 'emf=',data[13:16]
+ 
+
 # execute move command
+# initial - 2 steps straight, 2L+1R for right turn, 1L+2R for left turn
+def proceed(linear, angular):
+    if (angular > 0.5):
+        leftTime = 2*cycle
+        rightTime = cycle
+    elif (angular < -0.5):
+        leftTime = cycle
+        rightTime = 2*cycle
+    elif (linear > 0.5):
+        leftTime = 2*cycle
+        rightTime = 2*cycle
+    else:
+        leftTime = 0    # don't run if not forward or turning
+        rightTime = 0 
+ #   print 'setting run time left=%d  right=%d' %(leftTime, rightTime)
+    getPIDdata()
+    data = shared.imudata[0]
+    currentTime = data[1]/1000   # time in milliseconds
+    endTime = currentTime + max(leftTime,rightTime)
+    setThrustClosedLoop(leftTime, rightTime)
+# get telemetry data while closed loop is running
+    while(currentTime < endTime):
+#       time.sleep(0.1) # sample data every 0.1 sec
+        getPIDdata()  # delay is in getPIDdata()
+        data = shared.imudata[0]
+        currentTime = data[1]/1000   # time in milliseconds
+        print 'index =', data[0],'currentTime=',currentTime
+   
+
 count = 300 # 300 Hz sampling in steering = 1 sec
 
-def proceed():
+def proceed1():
     global duration, count, delay, throttle
     thrust = [throttle[0], duration, throttle[1], duration, 0]
     if telemetry:

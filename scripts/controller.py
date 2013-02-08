@@ -32,23 +32,32 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #!/usr/bin/env python
 
+# should get pose message from optitrack, and calculate commanded
+# robot velocity to get to origin 
+
 import roslib
 roslib.load_manifest('Turner25')
 import rospy
 
+import tf
+import geometry_msgs.msg
 import turtlesim.msg
+# need Pose and TransformStamped
 
-def handle_command(msg, robotname):
-    print 'desired linear vel ' + str(msg.linear)
-    print 'desired angular rate ' + str(msg.angular)
-    print 'robot = ' + robotname
+def handle_turner_pose(msg, robotname):
+    x_est = msg.x
+    y_est = msg.y
+    theta_est = tf.transformations.quaternion_from_euler(0, 0, msg.theta)
+    pub.publish(msg)
+
 
 if __name__ == '__main__':
-    rospy.init_node('Turner25')
+    rospy.init_node('Control')
 # add default value
     robotname = 'VelociRoACH1'
-    rospy.Subscriber('velCmd',
-                     turtlesim.msg.Velocity,
-                     handle_command,
+    rospy.Subscriber('/optitrack/pose',
+                     geometry_msgs.msg.TransformStamped,
+                     handle_turner_pose,
                      robotname)
+    pub= rospy.Publisher('velCMD', turtlesim.msg.Velocity)
     rospy.spin()

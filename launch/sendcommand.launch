@@ -4,6 +4,7 @@
     	  name="SendCommandRobot" 
 	  type="turner_commands.py"
 	  launch-prefix="nice -n 10  xterm -bg yellow -fg black -geometry 64x24+200+500 -title 'SendCommandRobot Debug Info' -e"
+	  output="screen"
 	  >
     	<remap from="velCmd" to="Velocity"/>
     </node>
