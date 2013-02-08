@@ -39,22 +39,18 @@ import turtlesim.msg
 from imageproc.robot_init import robot_init
 from imageproc.robot_init import telemetry
 from imageproc import run_robot
-pos_gain = 600   # straight throttle component
-turn_gain = 600   # turn gain component
+pos_gain = 1200   # straight throttle component
+turn_gain = 1200   # turn gain component
 
 
 def handle_command(msg, robotname):
     print 'desired linear vel ' + str(msg.linear)
     print 'desired angular rate ' + str(msg.angular)
     print 'robot = ' + robotname
-# throttle should be -4095 < throt < 4095, duration in ms
-    left_throttle = pos_gain * msg.linear + turn_gain * msg.angular
-    right_throttle = pos_gain * msg.linear - turn_gain * msg.angular
-    print 'setting thrust left=%d  right=%d' %(left_throttle, right_throttle)
-    run_robot.setThrust(left_throttle, right_throttle, 400)
-    telemetry = True
- #   run_robot.proceed()
-    
+    run_robot.proceed(msg.linear, msg.angular)
+# could monitor telem data and send message of current state?
+
+
 if __name__ == '__main__':
     rospy.init_node('Turner25')
 # add default value

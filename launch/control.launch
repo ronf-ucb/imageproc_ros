@@ -8,7 +8,7 @@
     </node>
 
     <node pkg="rostopic" name="rostopic_3" type="rostopic" 
-          args="echo /VelCMD" 
+          args="echo /optitrack/pose" 
 	  launch-prefix="nice -n 10 xterm -bg white -fg purple -geometry 64x16+250+450 -title 'RosTopic Controller' -e"
 	  >
     </node>
