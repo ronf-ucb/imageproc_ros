@@ -39,10 +39,19 @@
        <remap from="turtle1/command_velocity" to="Velocity"/>
     </node>
 
+    <node pkg="rostopic" name="rostopic_2" type="rostopic" 
+          args="echo /turtle1/pose" 
+	  launch-prefix="nice -n 10 xterm -bg white -fg purple -geometry 64x16+150+450 -title 'RosTopic turtle1/pose' -e"
+	  >
+    	<remap from="TurnTurtle/pose" to="turtle1/pose"/>
+    </node>
+
+
     <!--  start with include, so can debug w/o restarting everything -->
     <include file="$(find Turner25)/launch/sendcommand.launch" />
+    <include file="$(find ros_vrpn_client)/launch/optitrack.launch" />
 
-
+<!--
     <node pkg="Turner25" 
     	  name="broadcast" 
 	  type="turtle_tf_broadcaster.py"
@@ -50,6 +59,6 @@
 	  >
     	<remap from="TurnTurtle/pose" to="turtle1/pose"/>
     </node>
-
+-->
 
 </launch>

@@ -1,0 +1,18 @@
+<launch>
+ <!-- separate startup for just robot python node for debugging -->
+    <node pkg="Turner25" 
+    	  name="Controller" 
+	  type="controller.py"
+	  launch-prefix="nice -n 10  xterm -bg orange -fg black -geometry 64x24+300+500 -title 'Controller Debug Info' -e"
+	  >
+    </node>
+
+    <node pkg="rostopic" name="rostopic_3" type="rostopic" 
+          args="echo /VelCMD" 
+	  launch-prefix="nice -n 10 xterm -bg white -fg purple -geometry 64x16+250+450 -title 'RosTopic Controller' -e"
+	  >
+    </node>
+
+
+
+</launch>
