@@ -20,17 +20,16 @@
     <node pkg="Turner25" 
     	  name="Keyboard" 
 	  type="teleop_keyboard"
-	  launch-prefix="nice -n 10 xterm -bg white -fg black -geometry 64x16+50+200 -title 'Keyboard' -e"
+	  launch-prefix="nice -n 10 xterm -bg white -fg black -geometry 64x16+50+100 -title 'Keyboard' -e"
 	  >
     	<remap from="command_velocity" to="Velocity"/>
     </node>
 
     <node pkg="rostopic" name="rostopic_1" type="rostopic" 
           args="echo /Velocity" 
-	  launch-prefix="nice -n 10 xterm -bg white -fg red -geometry 64x16+100+400 -title 'RosTopic Velocity' -e"
+	  launch-prefix="nice -n 10 xterm -bg white -fg red -geometry 64x16+100+150 -title 'rostopic_1 Velocity' -e"
 	  >
     </node>
-
 
     <node pkg="turtlesim" name="sim3" 
     	  type="turtlesim_node"
@@ -41,7 +40,7 @@
 
     <node pkg="rostopic" name="rostopic_2" type="rostopic" 
           args="echo /turtle1/pose" 
-	  launch-prefix="nice -n 10 xterm -bg white -fg purple -geometry 64x16+150+450 -title 'RosTopic turtle1/pose' -e"
+	  launch-prefix="nice -n 10 xterm -bg white -fg purple -geometry 64x16+150+450 -title 'rostopic_2 turtle1/pose' -e"
 	  >
     	<remap from="TurnTurtle/pose" to="turtle1/pose"/>
     </node>
@@ -50,7 +49,7 @@
     <!--  start with include, so can debug w/o restarting everything -->
     <include file="$(find Turner25)/launch/sendcommand.launch" />
     <include file="$(find ros_vrpn_client)/launch/optitrack.launch" />
-
+    <include file="$(find Turner25)/launch/control.launch" />
 <!--
     <node pkg="Turner25" 
     	  name="broadcast" 

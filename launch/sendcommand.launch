@@ -3,7 +3,7 @@
     <node pkg="Turner25" 
     	  name="SendCommandRobot" 
 	  type="turner_commands.py"
-	  launch-prefix="nice -n 10  xterm -bg yellow -fg black -geometry 64x24+200+500 -title 'SendCommandRobot Debug Info' -e"
+	  launch-prefix="nice -n 10  xterm -bg yellow -fg black -geometry 64x16+200+500 -title 'SendCommandRobot Debug Info' -e"
 	  >
     	<remap from="velCmd" to="Velocity"/>
     </node>

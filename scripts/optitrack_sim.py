@@ -32,45 +32,55 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #!/usr/bin/env python
 
-# should get pose message from optitrack, and calculate commanded
-# robot velocity to get to origin 
-
 import roslib
 roslib.load_manifest('Turner25')
 import rospy
-import math
+
 import tf
-import geometry_msgs.msg
 import turtlesim.msg
-# need Pose and TransformStamped
+import geometry_msgs.msg
 
-def handle_turner_pose(msg, robotname):
-#    print "msg=", msg
-    x_est = msg.transform.translation.x
-    y_est = msg.transform.translation.y
-    x = msg.transform.rotation.x
-    y = msg.transform.rotation.y
-    z = msg.transform.rotation.z
-    w = msg.transform.rotation.w
-    rot = [x,y,z,w]  # quaternion
-#    print 'quaternion=', rot
-    angles = tf.transformations.euler_from_quaternion(rot)
-    print 'angles = ', angles
-    print 'state: x_est=',x_est,' y_est=', y_est, ' theta=', angles[2]
-# need to convert to turtlesim.msg
-    angular = 4 * math.atan2(y_est,x_est)
-    linear = 0.5 * math.sqrt(x_est ** 2 + y_est **2)
-    print 'angular=', angular, ' linear =', linear
-    pub.publish(turtlesim.msg.Velocity(linear,angular))
+# generate optitrack style type messages from user input of x,y,theta
 
+
+def optitrack_sim(robotname):
+    msg = geometry_msgs.msg.TransformStamped()
+#   print 'msg =', msg
+    pub = rospy.Publisher('/optitrack/pose',
+                           geometry_msgs.msg.TransformStamped)
+    while not rospy.is_shutdown():
+        print 'enter x,y, theta for robot pose'
+        temp = raw_input()
+        vec = map(float,temp.split(','))
+        x = vec[0]
+        y = vec[1]
+        theta = vec[2]
+#       print 'x,y,theta =', x,y,theta
+        msg.transform.translation.x = x
+        msg.transform.translation.y = y
+        msg.transform.translation.z = 0
+        quat = tf.transformations.quaternion_from_euler(0, 0, theta)
+        msg.transform.rotation.x = quat[0]
+        msg.transform.rotation.y = quat[1]
+        msg.transform.rotation.z = quat[2]
+        msg.transform.rotation.w = quat[3]
+#        print 'msg =', msg
+        pub.publish(msg)
+# TransformBroadcaster: tf not compatible with geometry_msgs?
+#        br = tf.TransformBroadcaster()
+#        br.sendTransform((x, y, 0),
+#                     tf.transformations.quaternion_from_euler(0, 0, theta),
+#                     rospy.Time.now(),
+#                     robotname,
+#                     "world")
 
 if __name__ == '__main__':
-    rospy.init_node('Control')
-# add default value
+    rospy.init_node('Optitrack_sim')
     robotname = 'VelociRoACH1'
-    rospy.Subscriber('/optitrack/pose',
-                     geometry_msgs.msg.TransformStamped,
-                     handle_turner_pose,
-                     robotname)
-    pub= rospy.Publisher('velCMD', turtlesim.msg.Velocity)
-    rospy.spin()
+# add default value
+    try:
+         optitrack_sim(robotname)
+    except rospy.ROSInterruptException:   # run until control-C
+         pass
+
+

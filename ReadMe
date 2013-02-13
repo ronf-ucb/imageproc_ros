@@ -1,1 +1,6 @@
 roslaunch Turner25 turnertest.launch
+
+rostopic pub /optitrack/pose geometry_msgs/TransformStamped
+         '{header: {stamp: now, frame_id: base_link},
+         child_frame_id: base_link,
+  transform: {translation: [0.1, 0.0, 0.0], rotation: [0.0, 0.0, 0.0, 0.0]}}'
