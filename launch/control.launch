@@ -11,14 +11,14 @@
 
     <node pkg="rostopic" name="rostopic_3" type="rostopic" 
           args="echo /optitrack/pose" 
-	  launch-prefix="nice -n 10 xterm -bg white -fg purple -geometry 64x16+350+100 -title 'rostopic_3 optitrack/pose' -e"
+	  launch-prefix="nice -n 10 xterm -bg white -fg purple -geometry 64x16+350+300 -title 'rostopic_3 optitrack/pose' -e"
 	  >
     </node>
 
     <node pkg="Turner25"
     	  name="Optitrack_sim" 
 	  type="optitrack_sim.py"
-	  launch-prefix="nice -n 10  xterm -bg white -fg black -geometry 64x16+400+150 -title 'Optitrack_sim Debug Info' -e"
+	  launch-prefix="nice -n 10  xterm -bg white -fg black -geometry 64x16+400+350 -title 'Optitrack_sim Debug Info' -e"
 	  >
 	  <remap from="tf" to="optitrack/pose"/>
     </node>

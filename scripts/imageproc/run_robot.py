@@ -31,6 +31,8 @@
 import robot_init
 from robot_init import *
 
+LEG_VELOCITY = 2.0 # maximum leg m/sec
+
 def setThrust(throttle0, throttle1, duration):
     thrust = [throttle0, throttle1, duration]
     xb_send(0, command.SET_THRUST, pack("3h",*thrust))
@@ -42,8 +44,8 @@ def setThrust(throttle0, throttle1, duration):
 def setThrustClosedLoop(leftTime,rightTime):
     thrust = [throttle[0], leftTime, throttle[1], rightTime, 0]
     xb_send(0, command.SET_THRUST_CLOSED_LOOP, pack('5h',*thrust))
-    print "Throttle[0,1] = ",throttle[0],throttle[1],\
-          "left", leftTime,"right", rightTime
+#    print "Throttle[0,1] = ",throttle[0],throttle[1],\
+#          "left", leftTime,"right", rightTime
 
 # get one packet of PID data from robot
 def getPIDdata():
@@ -55,8 +57,9 @@ def getPIDdata():
     xb_send(0, command.GET_PID_TELEMETRY, pack('h',0))
     time.sleep(0.05)
     while shared.pkts == 0:
-        print "\n Retry after 0.5 seconds. Got only %d pacPIDkets" %shared.pkts
+        print "Retry after 0.5 seconds. Got only %d packets" %shared.pkts
         time.sleep(0.5)
+        xb_send(0, command.GET_PID_TELEMETRY, pack('h',0))
         count = count + 1
         if count > 10:
             print 'no return packet'
@@ -73,32 +76,33 @@ def getPIDdata():
 
 # execute move command
 # initial - 2 steps straight, 2L+1R for right turn, 1L+2R for left turn
-def proceed(linear, angular):
-    if (angular > 0.5):
-        leftTime = 2*cycle
-        rightTime = cycle
-    elif (angular < -0.5):
-        leftTime = cycle
-        rightTime = 2*cycle
-    elif (linear > 0.5):
-        leftTime = 2*cycle
-        rightTime = 2*cycle
-    else:
-        leftTime = 0    # don't run if not forward or turning
-        rightTime = 0 
- #   print 'setting run time left=%d  right=%d' %(leftTime, rightTime)
+# discrete approximation V_R = V_n + \omega / 2
+# V_L = V_n - \omega / 2
+# initial calculation assuming no slip - times in milliseconds
+def proceed(vel, turn_rate):
+    leftTime = int(1000 * (vel - turn_rate/2) / LEG_VELOCITY)
+    rightTime = int(1000 * (vel + turn_rate/2) / LEG_VELOCITY)
+
+    # probably should normalize, but can at least bound leg run time
+    leftTime=max(0,leftTime)
+    leftTime=min(5*cycle,leftTime)
+    rightTime=max(0,rightTime)
+    rightTime=min(5*cycle,rightTime)
+
+    print 'setting run time left=%d  right=%d' %(leftTime, rightTime)
     getPIDdata()
     data = shared.imudata[0]
-    currentTime = data[1]/1000   # time in milliseconds
-    endTime = currentTime + max(leftTime,rightTime)
+    currentTime = time.time()   # time in seconds, floating point
+    endTime = currentTime + (5*cycle)/1000 # 5 stride motion segments
     setThrustClosedLoop(leftTime, rightTime)
 # get telemetry data while closed loop is running
+# can't trust robot time - need to have python timer as well
     while(currentTime < endTime):
 #       time.sleep(0.1) # sample data every 0.1 sec
         getPIDdata()  # delay is in getPIDdata()
         data = shared.imudata[0]
-        currentTime = data[1]/1000   # time in milliseconds
-        print 'index =', data[0],'currentTime=',currentTime
+        currentTime = time.time()  # time in milliseconds
+        print 'index =', data[0],'currentTime=',data[1]/1000
    
 
 count = 300 # 300 Hz sampling in steering = 1 sec

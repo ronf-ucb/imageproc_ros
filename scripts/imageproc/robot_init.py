@@ -60,15 +60,15 @@ RESET_ROBOT = False
 # try just left motor
 motorgains = [400,0,400,0,0, 400,0,400,0,0]
 throttle = [0,0]
-duration = [512,512]  # length of run
-cycle = 512 # ms for a leg cycle
+duration = [200,200]  # length of run
+cycle = 200 # ms for a leg cycle
 # velocity profile
 # [time intervals for setpoints]
 # [position increments at set points]
 # [velocity increments]   
 delta = [0x4000,0x4000,0x4000,0x4000]  # adds up to 65536 (2 pi)
-intervals = [128, 128, 128, 128]  # total 512 ms
-vel = [128, 128,128,128]  # = delta/interval
+intervals = [50, 50, 50, 50]  # total 200 ms
+vel = [327, 327,327,327]  # = delta/interval
 
 
 ser = serial.Serial(shared.BS_COMPORT, shared.BS_BAUDRATE,timeout=3, rtscts=0)

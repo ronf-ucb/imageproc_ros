@@ -20,14 +20,14 @@
     <node pkg="Turner25" 
     	  name="Keyboard" 
 	  type="teleop_keyboard"
-	  launch-prefix="nice -n 10 xterm -bg white -fg black -geometry 64x16+50+100 -title 'Keyboard' -e"
+	  launch-prefix="nice -n 10 xterm -bg white -fg black -geometry 64x16+50+200 -title 'Keyboard' -e"
 	  >
     	<remap from="command_velocity" to="Velocity"/>
     </node>
 
     <node pkg="rostopic" name="rostopic_1" type="rostopic" 
           args="echo /Velocity" 
-	  launch-prefix="nice -n 10 xterm -bg white -fg red -geometry 64x16+100+150 -title 'rostopic_1 Velocity' -e"
+	  launch-prefix="nice -n 10 xterm -bg white -fg red -geometry 64x16+100+250 -title 'rostopic_1 Velocity' -e"
 	  >
     </node>
 

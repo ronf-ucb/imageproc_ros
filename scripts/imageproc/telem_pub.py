@@ -1,9 +1,5 @@
-#!/usr/bin/env python
-# Software License Agreement (BSD License)
-#
-# Copyright (c) 2013, Regents of the University of California
+# Copyright (c) 2010-2013, Regents of the University of California
 # All rights reserved.
-#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #
@@ -27,38 +23,56 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#
 
-# R. Fearing Feb. 2013  basic commands sent out to robot for initial
-# closed loop control through ROS
-
+# R. Fearing Feb 14, 2014
+# publish telemetry data
+import sys
+sys.path.append('/opt/ros/groovy/lib/python2.7/dist-packages')
 import roslib
-roslib.load_manifest('Turner25')
 import rospy
-import turtlesim.msg
-from imageproc.robot_init import robot_init
-from imageproc.robot_init import telemetry
-from imageproc import run_robot
 
-def handle_command(msg, robotname):
-    print 'desired linear vel ' + str(msg.linear)
-    print 'desired angular rate ' + str(msg.angular)
-    print 'robot = ' + robotname
-    run_robot.proceed(msg.linear, msg.angular)
-# could monitor telem data and send message of current state?
+import robot_init
+# from robot_init import *
+import sensor_msgs.msg
+
+# idx | time | LPos| RPos | LPWM | RPWM | 
+# GyroX | GryoY | GryoZ | GryoZAvg | AX | AY | AZ | 
+# RBEMF | LBEMF | VBAT | Steer
+dummy_data = [100, 0x1000000, 0x2000, -0x2000, 0xfff, 0xfff,\
+                  0,0,0,0,0.1,0.2,9.80,\
+                  0x1ff,-0x1ff,0x2ff,0]
+
+def pub_telem(data):
+
+    print 'index =', data[0]
+    print 'time = ', data[1]    # time is in microseconds
+    print 'mpos=', data[2:4]
+    print 'pwm=',data[4:6]
+    print 'gyro=',data[6:10]
+    print 'imu=',data[10:13]
+    print 'emf=',data[13:16]
+
+    imsg = sensor_msgs.msg.Imu()
+    imsg.header.seq = data[0]
+    imsg.angular_velocity.x = data[6]
+    imsg.angular_velocity.y = data[7]
+    imsg.angular_velocity.z = data[8]
+    imsg.linear_acceleration.x = data[10]
+    imsg.linear_acceleration.y = data[11]
+    imsg.linear_acceleration.z = data[12]
+
+    smsg = sensor_msgs.msg.JointState()
+    smsg.header.seq = data[0]
+    smsg.name = 'TurnerJoints'
+    smsg.position = data[2:4]  # motor pos
+    smsg.velocity = data[13:15]   # back EMF
+    smsg.effort = data[4:6]  # PWM command
+
+    print 'imsg:', imsg
+    print 'smsg:', smsg
+    
 
 
-if __name__ == '__main__':
-    rospy.init_node('Turner25')
-# add default value
-    robotname = 'VelociRoACH1'
-    rospy.Subscriber('velCmd',
-                     turtlesim.msg.Velocity,
-                     handle_command,
-                     robotname)
-    try:
-        print 'initializing robot'
-        robot_init()
-    except rospy.ROSInterruptException:
-        pass
-    rospy.spin()
+
+    
+
