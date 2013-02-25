@@ -41,6 +41,7 @@ from xbee import XBee
 import serial
 from callbackFunc import xbee_received
 import shared
+# from shared import robot_ready
 
 DEST_ADDR = '\x20\x52'
 imudata_file_name = 'imudata.txt'
@@ -69,7 +70,6 @@ cycle = 100 # ms for a leg cycle
 delta = [0x4000,0x4000,0x4000,0x4000]  # adds up to 65536 (2 pi)
 intervals = [50, 50, 50, 50]  # total 200 ms
 vel = [327, 327,327,327]  # = delta/interval
-
 
 ser = serial.Serial(shared.BS_COMPORT, shared.BS_BAUDRATE,timeout=3, rtscts=0)
 xb = XBee(ser, callback = xbee_received)
@@ -148,7 +148,7 @@ def robot_init():
     xb_send(0, command.ZERO_POS,  "Zero motor")
     print 'read motorpos and zero'
     print "Done Initializing"
-    
+    shared.robot_ready = True
                 
         
         

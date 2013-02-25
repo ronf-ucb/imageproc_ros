@@ -61,8 +61,8 @@ def optitrack_sim(robotname):
 #        vec = map(float,temp.split(','))
         time.sleep(TIME_STEP)    # simulate 100 Hz
         time_step = time_step + TIME_STEP
-        x = 1.0 + 0.2*cos(0.2*2*PI*time_step)
-        y = 1.0 + 0.3*sin(0.5*2*PI*time_step)
+        x = 0.3 + 0.2*cos(0.2*2*PI*time_step)
+        y = 0.3 + 0.2*sin(0.5*2*PI*time_step)
         theta = 0.5 * cos(0.1*2*PI*time_step)
 #       print 'x,y,theta =', x,y,theta
         msg.transform.translation.x = x

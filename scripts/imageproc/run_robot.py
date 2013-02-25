@@ -28,6 +28,7 @@
 # basic send command to run robot
 # will add telemetry later
 
+import rospy
 import robot_init
 from robot_init import *
 
@@ -55,14 +56,15 @@ def getPIDdata():
     # data format '=LLll'+13*'h' 
     shared.imudata = [] #reset stored data
     xb_send(0, command.GET_PID_TELEMETRY, pack('h',0))
-    time.sleep(0.05)
+    time.sleep(0.075)   # 10 Hz, faster could choke Basestation
     while shared.pkts == 0:
-        print "Retry after 0.5 seconds. Got only %d packets" %shared.pkts
-        time.sleep(0.5)
+        print "Retry after 0.1 seconds. Got only %d packets" %shared.pkts
+        time.sleep(0.1)
         xb_send(0, command.GET_PID_TELEMETRY, pack('h',0))
         count = count + 1
-        if count > 10:
-            print 'no return packet'
+        if count > 5:
+            print 'Killed SendCommand. No return packet.'
+            rospy.signal_shutdown('Killed node. No return packet!')
             shared.imudata.append(dummy_data) # use dummy data
             break   
     data = shared.imudata[0]  # convert string list to numbers
@@ -93,10 +95,11 @@ def proceed(vel, turn_rate):
     getPIDdata()
     data = shared.imudata[0]
     currentTime = time.time()   # time in seconds, floating point
-    endTime = currentTime + (4*cycle)/1000 # 4 stride motion segments
+    endTime = currentTime + (4.0*cycle)/1000.0 # 4 stride motion segments
     setThrustClosedLoop(leftTime, rightTime)
 # get telemetry data while closed loop is running
 # can't trust robot time - need to have python timer as well
+#    print 'currentTime = %f, endTime = %f' %(currentTime, endTime)
     while(currentTime < endTime):
 #       time.sleep(0.1) # sample data every 0.1 sec
         getPIDdata()  # delay is in getPIDdata()

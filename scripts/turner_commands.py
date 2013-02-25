@@ -38,17 +38,31 @@ import rospy
 import turtlesim.msg
 from imageproc.robot_init import robot_init
 from imageproc.robot_init import telemetry
+import imageproc.shared
 from imageproc import run_robot
+from time import sleep
+
+
 
 def handle_command(msg, robotname):
-    print 'desired linear vel ' + str(msg.linear)
-    print 'desired angular rate ' + str(msg.angular)
-    print 'robot = ' + robotname
-    run_robot.proceed(msg.linear, msg.angular)
+#    print 'desired linear vel ' + str(msg.linear)
+#    print 'desired angular rate ' + str(msg.angular)
+    sleep(0.025)  # wait to avoid overfilling Basestation queue
+    if imageproc.shared.robot_ready == True:
+        print '\n des. lin. vel. %6.2f' % msg.linear,
+        print 'des. ang. rate %6.2f' % msg.angular,
+        print 'robot = ' + robotname
+        run_robot.proceed(msg.linear, msg.angular)
+    else: 
+        print robotname + 'not ready'
+
+
 # could monitor telem data and send message of current state?
 
 
 if __name__ == '__main__':
+#    global robot_ready
+    imageproc.shared.robot_ready = False     # don't send commands until ready
     rospy.init_node('Turner25')
 # add default value
     robotname = 'VelociRoACH1'
@@ -59,6 +73,7 @@ if __name__ == '__main__':
     try:
         print 'initializing robot'
         robot_init()
+        print "robot_ready = ", imageproc.shared.robot_ready
     except rospy.ROSInterruptException:
         pass
     rospy.spin()

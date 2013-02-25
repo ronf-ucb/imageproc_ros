@@ -45,9 +45,9 @@ state_initialized = False
 target = [0,0,0] # desired position for robot
 state = [0, 0, 0]
 old_state = [0,0,0]
-kpx = 2.0   # should be m/s per meter longitudinal error
-kpy = 4.0   # should be rad/sec turn per meter lateral error
-kd = 1.0  # should be rad/sec turn per rad orientation error
+kpx = 0.5   # should be m/s per meter longitudinal error
+kpy = 1.0   # should be rad/sec turn per meter lateral error
+kd = 0.5  # should be rad/sec turn per rad orientation error
 ref = [0,0,0] # reference position to track, default to origin
 MAX_VEL = 2.0 # m/s
 MAX_TURN = 3.0 # rad/sec
@@ -74,7 +74,7 @@ def handle_turner_pose(msg, robotname):
     vel = max(-MAX_VEL, vel)
     turn_rate = min(MAX_TURN, turn_rate)
     turn_rate = max(-MAX_TURN,turn_rate)
-    print 'cmd speed m/s', vel, ' cmd turn rad/sec =', turn_rate
+    print 'cmd speed m/s %6.2f' % vel, ' cmd turn rad/sec = %6.2f' % turn_rate
     pub.publish(turtlesim.msg.Velocity(vel,turn_rate))
 
 # put initial target location a bit in front of robot by about 0.5 m
@@ -95,8 +95,8 @@ def getState(msg):
     rot = [x,y,z,w]  # quaternion
 #    print 'quaternion=', rot
     angles = tf.transformations.euler_from_quaternion(rot)
-    print 'angles = ', angles
-    print 'state: x_est=',x_est,' y_est=', y_est, ' theta=', angles[2]
+#    print 'angles = ', angles
+    print 'state: x_est= %8.3f' % x_est,' y_est=%8.3f' % y_est, ' theta=%8.3f' % angles[2]
     state = [x_est, y_est, angles[2]]
 
 

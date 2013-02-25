@@ -33,7 +33,7 @@
 
     <node pkg="turtlesim" name="sim3" 
     	  type="turtlesim_node"
-	  launch-prefix="nice -n 10"
+	  launch-prefix="nice -n 19"
 	  >
        <remap from="turtle1/command_velocity" to="Velocity"/>
     </node>
