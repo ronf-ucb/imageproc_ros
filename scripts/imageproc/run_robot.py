@@ -80,20 +80,20 @@ def getPIDdata():
 # V_L = V_n - \omega / 2
 # initial calculation assuming no slip - times in milliseconds
 def proceed(vel, turn_rate):
-    leftTime = int(1000 * (vel - turn_rate/2) / LEG_VELOCITY)
-    rightTime = int(1000 * (vel + turn_rate/2) / LEG_VELOCITY)
+    leftTime = int(4*cycle * (vel - turn_rate/2) / LEG_VELOCITY)
+    rightTime = int(4 * cycle * (vel + turn_rate/2) / LEG_VELOCITY)
 
     # probably should normalize, but can at least bound leg run time
     leftTime=max(0,leftTime)
-    leftTime=min(5*cycle,leftTime)
+    leftTime=min(4*cycle,leftTime)
     rightTime=max(0,rightTime)
-    rightTime=min(5*cycle,rightTime)
+    rightTime=min(4*cycle,rightTime)
 
     print 'setting run time left=%d  right=%d' %(leftTime, rightTime)
     getPIDdata()
     data = shared.imudata[0]
     currentTime = time.time()   # time in seconds, floating point
-    endTime = currentTime + (5*cycle)/1000 # 5 stride motion segments
+    endTime = currentTime + (4*cycle)/1000 # 4 stride motion segments
     setThrustClosedLoop(leftTime, rightTime)
 # get telemetry data while closed loop is running
 # can't trust robot time - need to have python timer as well

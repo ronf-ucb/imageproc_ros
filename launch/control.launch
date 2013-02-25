@@ -17,7 +17,7 @@
 
     <node pkg="Turner25"
     	  name="Optitrack_sim" 
-	  type="optitrack_sim.py"
+	  type="optitrack_sim2.py"
 	  launch-prefix="nice -n 10  xterm -bg white -fg black -geometry 64x16+400+350 -title 'Optitrack_sim Debug Info' -e"
 	  >
 	  <remap from="tf" to="optitrack/pose"/>

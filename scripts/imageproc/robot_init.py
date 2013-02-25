@@ -61,7 +61,7 @@ RESET_ROBOT = False
 motorgains = [400,0,400,0,0, 400,0,400,0,0]
 throttle = [0,0]
 duration = [200,200]  # length of run
-cycle = 200 # ms for a leg cycle
+cycle = 100 # ms for a leg cycle
 # velocity profile
 # [time intervals for setpoints]
 # [position increments at set points]
@@ -84,18 +84,22 @@ def resetRobot():
 
         
 #set velocity profile
+# invert profile for motor 0 for VelociRoACH kinematics
 def setVelProfile():
     global intervals, vel
     print "Sending velocity profile"
     print "set points [encoder values]", delta
     print "intervals (ms)",intervals
     print "velocities (delta per ms)",vel
-    temp = intervals+delta+vel
-    temp = temp+temp  # left = right
+    temp0 = intervals + map(invert,delta) + map(invert,vel) # invert 0
+    temp1 = intervals+delta+vel
+    temp = temp0 + temp1  # left = right
     xb_send(0, command.SET_VEL_PROFILE, pack('24h',*temp))
     time.sleep(1)
     
 
+def invert(x):
+    return (-x)
 
 # set robot control gains
 def setGain():
