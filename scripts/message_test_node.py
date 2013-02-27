@@ -28,54 +28,40 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
+# R. Fearing Feb. 2013
+# test ROS sensor messages 
 
-# R. Fearing Feb. 2013  basic commands sent out to robot for initial
-# closed loop control through ROS
-
+import sys
+# sys.path.append('/opt/ros/groovy/lib/python2.7/dist-packages')
 import roslib
 roslib.load_manifest('Turner25')
 import rospy
+import rosgraph
 import turtlesim.msg
 import sensor_msgs.msg
-from imageproc.robot_init import robot_init
-# from imageproc.robot_init import telemetry
-import imageproc.shared
-from imageproc import run_robot
-from time import sleep
+
 smsg = sensor_msgs.msg.JointState()
 
 def handle_command(msg, robotname):
-#    print 'desired linear vel ' + str(msg.linear)
-#    print 'desired angular rate ' + str(msg.angular)
-    sleep(0.025)  # wait to avoid overfilling Basestation queue
-    if imageproc.shared.robot_ready == True:
-        print '\n des. lin. vel. %6.2f' % msg.linear,
-        print 'des. ang. rate %6.2f' % msg.angular,
-        print 'robot = ' + robotname
-        run_robot.proceed(msg.linear, msg.angular)
-        data = run_robot.getPIDdata()
-        publish_data(data)
-    else: 
-        print robotname + 'not ready'
+    print 'desired linear vel ' + str(msg.linear)
+    print 'desired angular rate ' + str(msg.angular)
+    print 'robot = ' + robotname
 
-
-def publish_data(data):
-    smsg.header.seq = data[0]
-    smsg.header.stamp.secs = int(data[1]/1e6) 
-    smsg.header.stamp.nsecs = data[1] - 1e6 * smsg.header.stamp.secs
+    smsg.header.seq = 100
+    smsg.header.stamp.secs = 3.3
+    smsg.header.stamp.nsecs = 2357786
 
     smsg.name = [ 'left', 'right']
-    smsg.position = [data[2], data[3]]            # leg encoder count
-    smsg.velocity = [data[13], data[14]]          # motor back emf
-    smsg.effort = [data[4], data[5]]            # PWM command
+    smsg.position = [0.3, 0.7]            # leg encoder count
+    smsg.velocity = [1.35, 2.22]          # motor back emf
+    smsg.effort = [1024, 2048]            # PWM command
     robot_state_pub.publish(smsg)
 
+# could monitor telem data and send message of current state?
 
 
 if __name__ == '__main__':
-#    global robot_ready
-    imageproc.shared.robot_ready = False     # don't send commands until ready
-    rospy.init_node('Turner25')
+    rospy.init_node('SensorMsg')
 # add default value
     robotname = 'VelociRoACH1'
     rospy.Subscriber('velCmd',
@@ -84,9 +70,7 @@ if __name__ == '__main__':
                      robotname)
     robot_state_pub = rospy.Publisher('robotState', sensor_msgs.msg.JointState)
     try:
-        print 'initializing robot'
-        robot_init()
-        print "robot_ready = ", imageproc.shared.robot_ready
+        print 'initializing node'
     except rospy.ROSInterruptException:
         pass
     rospy.spin()

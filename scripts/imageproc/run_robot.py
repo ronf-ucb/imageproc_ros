@@ -28,9 +28,17 @@
 # basic send command to run robot
 # will add telemetry later
 
+import sys
+#sys.path.append('/opt/ros/groovy/lib/python2.7/dist-packages')
+sys.path.append('../') # add path to up one level
 import rospy
 import robot_init
 from robot_init import *
+# from turner_commands import publish_data
+# import turner_commands.publish_data
+import sensor_msgs.msg
+smsg = sensor_msgs.msg.JointState()
+
 
 LEG_VELOCITY = 2.0 # maximum leg m/sec
 
@@ -50,6 +58,7 @@ def setThrustClosedLoop(leftTime,rightTime):
 
 # get one packet of PID data from robot
 def getPIDdata():
+    from turner_commands import publish_data
     count = 0
     shared.pkts = 0   # reset packet count
     dummy_data = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
@@ -68,6 +77,9 @@ def getPIDdata():
             shared.imudata.append(dummy_data) # use dummy data
             break   
     data = shared.imudata[0]  # convert string list to numbers
+#    publish_data(data) # in top level module 
+    return data
+
   #  print 'index =', data[0]
   #  print 'time = ', data[1]    # time is in microseconds
   #  print 'mpos=', data[2:4]
