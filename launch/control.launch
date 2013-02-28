@@ -5,9 +5,16 @@
 	  type="controller.py"
 	  launch-prefix="nice -n 10  xterm -bg orange -fg black -geometry 64x16+250+550 -title 'Controller Debug Info' -e"
 	  >
-	  <remap from="velCMD" to="Velocity"/>
+	  <remap from="velCMD" to="VelFast"/>
     </node>
 
+    <node pkg="topic_tools"
+    	  name="Throttle10Hz"
+	  type="throttle"
+	  args="messages /VelFast 10 /Velocity"
+	  launch-prefix="nice -n 10"
+	  >
+    </node>
 
     <node pkg="rostopic" name="rostopic_3" type="rostopic" 
           args="echo /optitrack/pose" 
@@ -15,9 +22,10 @@
 	  >
     </node>
 
+ <!-- comment out simulator if optitrack is working -->
     <node pkg="Turner25"
     	  name="Optitrack_sim" 
-	  type="optitrack_sim2.py"
+	  type="optitrack_sim.py"
 	  launch-prefix="nice -n 10  xterm -bg white -fg black -geometry 64x16+400+350 -title 'Optitrack_sim Debug Info' -e"
 	  >
 	  <remap from="tf" to="optitrack/pose"/>

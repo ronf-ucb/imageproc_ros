@@ -38,13 +38,16 @@ from robot_init import *
 # from turner_commands import publish_data
 # import turner_commands.publish_data
 import sensor_msgs.msg
+PI = 3.1415926536
+MPOS_SCALE = 2.0 * PI/ (2**16)
+
 smsg = sensor_msgs.msg.JointState()
 
 
 LEG_VELOCITY = 2.0 # maximum leg m/sec
 
 class RunRobot:
-
+    robot_ready = False
     def __init__(self, name):
         self.robotname = name
         print "Robot = ", self.robotname
@@ -74,11 +77,13 @@ class RunRobot:
         time.sleep(0.075)   # 10 Hz, faster could choke Basestation
         while shared.pkts == 0:
             print "Retry after 0.1 seconds. Got only %d packets" %shared.pkts
+            rospy.logerr('retry getPIDdata')
             time.sleep(0.1)
             xb_send(0, command.GET_PID_TELEMETRY, pack('h',0))
             count = count + 1
             if count > 5:
                 print 'Killed SendCommand. No return packet.'
+                rospy.logfatal('getPIDdata: no return packet')
                 rospy.signal_shutdown('Killed node. No return packet!')
                 shared.imudata.append(dummy_data) # use dummy data
                 break   
@@ -88,7 +93,7 @@ class RunRobot:
 
       #  print 'index =', data[0]
       #  print 'time = ', data[1]    # time is in microseconds
-      #  print 'mpos=', data[2:4]
+      #  print 'mpos=', data[2:4]    # motor position is 64K/rev
       #  print 'pwm=',data[4:6]
       #  print 'imu=',data[6:13]
       #  print 'emf=',data[13:16]
@@ -99,10 +104,11 @@ class RunRobot:
         smsg.header.stamp.nsecs = data[1] - 1e6 * smsg.header.stamp.secs
 
         smsg.name = [ 'left', 'right']
-        smsg.position = [data[2], data[3]]            # leg encoder count           
-        smsg.velocity = [data[13], data[14]]          # motor back emf              
-        smsg.effort = [data[4], data[5]]            # PWM command                   
-        print 'smsgs =', smsg
+# leg encoder count in radians:
+        smsg.position = [data[2]*MPOS_SCALE, data[3]*MPOS_SCALE]
+        smsg.velocity = [data[13], data[14]]          # motor back emf       
+        smsg.effort = [data[4], data[5]]            # PWM command            
+#        print 'smsgs =', smsg
         self.pub_state.publish(smsg)
 
   
