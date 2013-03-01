@@ -102,6 +102,7 @@ class RunRobot:
         smsg.header.seq = data[0]
         smsg.header.stamp.secs = int(data[1]/1e6)
         smsg.header.stamp.nsecs = data[1] - 1e6 * smsg.header.stamp.secs
+        smsg.header.frame_id = self.robotname
 
         smsg.name = [ 'left', 'right']
 # leg encoder count in radians:
