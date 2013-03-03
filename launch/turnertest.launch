@@ -31,6 +31,25 @@
 	  >
     </node>
 
+
+
+    <!--  start with include, so can debug w/o restarting everything -->
+    <include file="$(find Turner25)/launch/sendcommand.launch" />
+    <include file="$(find ros_vrpn_client)/launch/optitrack.launch" />
+    <include file="$(find Turner25)/launch/control.launch" />
+
+<!-- ******************* unused ******************* -->
+
+<!--
+    <node pkg="Turner25" 
+    	  name="broadcast" 
+	  type="turtle_tf_broadcaster.py"
+	  launch-prefix="nice -n 10"
+	  >
+    	<remap from="TurnTurtle/pose" to="turtle1/pose"/>
+    </node>
+
+
     <node pkg="turtlesim" name="sim3" 
     	  type="turtlesim_node"
 	  launch-prefix="nice -n 19"
@@ -46,20 +65,6 @@
     </node>
 
 
-    <!--  start with include, so can debug w/o restarting everything -->
-    <include file="$(find Turner25)/launch/sendcommand.launch" />
-
-
-    <include file="$(find ros_vrpn_client)/launch/optitrack.launch" />
-    <include file="$(find Turner25)/launch/control.launch" />
-<!--
-    <node pkg="Turner25" 
-    	  name="broadcast" 
-	  type="turtle_tf_broadcaster.py"
-	  launch-prefix="nice -n 10"
-	  >
-    	<remap from="TurnTurtle/pose" to="turtle1/pose"/>
-    </node>
 -->
 
 </launch>

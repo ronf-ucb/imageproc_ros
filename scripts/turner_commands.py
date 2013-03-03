@@ -38,44 +38,34 @@ roslib.load_manifest('Turner25')
 import rospy
 import turtlesim.msg
 import sensor_msgs.msg
+import std_msgs.msg
 from imageproc.robot_init import robot_init
 import imageproc.shared
 import imageproc.run_robot_class
-
-from time import sleep
-
-def handle_command(msg, robotname):
-#    print 'desired linear vel ' + str(msg.linear)
-#    print 'desired angular rate ' + str(msg.angular)
-    sleep(0.025)  # wait to avoid overfilling Basestation queue
-    if Robot.robot_ready == True:
-#        print '\n des. lin. vel. %6.2f' % msg.linear,
-#        print 'des. ang. rate %6.2f' % msg.angular,
-#        print 'robot = ' + robotname
-        Robot.proceed(msg.linear, msg.angular)
-
-    else: 
-        rospy.logerr('%s not ready' % robotname)
-        print robotname + 'not ready'
-        sleep(0.5)  # may still be initializing
-
 
 
 if __name__ == '__main__':
     robotname = 'VelociRoACH1'
     Robot = imageproc.run_robot_class.RunRobot(robotname)
     Robot.robot_ready = False
+    Robot.runtime = 0.0    # initial run time set to 0 sec
     rospy.init_node('Turner25')
+# topic for commanded leg velocities from controller node
     rospy.Subscriber('velCmd',
                      turtlesim.msg.Velocity,
-                     handle_command,
+                     Robot.callback_command,
+#                     handle_command,
                      robotname)
+# topic for starting and starting robot
+    rospy.Subscriber('RunTime', 
+                     std_msgs.msg.Float32,
+                     Robot.callback_runtime)
 
     try:
         print 'initializing robot'
         Robot.robot_ready = robot_init()
         print "robot_ready = ", Robot.robot_ready
-        
+        Robot.run()       # run robot using callback messages
     except rospy.ROSInterruptException:
         pass
     rospy.spin()

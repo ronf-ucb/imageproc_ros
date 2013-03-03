@@ -43,15 +43,29 @@ MPOS_SCALE = 2.0 * PI/ (2**16)
 
 smsg = sensor_msgs.msg.JointState()
 
-
 LEG_VELOCITY = 2.0 # maximum leg m/sec
 
 class RunRobot:
     robot_ready = False
+    linear_command = 0.0
+    angular_command = 0.0
+    data = []   # telemetry packet returned from robot
+    runtime = 0.0
+    robot_onoff = False
+
     def __init__(self, name):
         self.robotname = name
         print "Robot = ", self.robotname
         self.pub_state = rospy.Publisher('robotState', sensor_msgs.msg.JointState)
+
+# store published command locally to be accessed by velocity sending
+    def callback_command(self, msg, robotname):
+        self.linear_command = msg.linear
+        self.angular_command = msg.angular
+
+    def callback_runtime(self, msg):
+        self.runtime = msg.data + time.time()  # time in milliseconds
+        print 'robot runtime =', msg.data, 'end time =', self.runtime
 
     def setThrust(self, throttle0, throttle1, duration):
         thrust = [throttle0, throttle1, duration]
@@ -59,12 +73,12 @@ class RunRobot:
         print "cmdSetThrust " + str(thrust)
 
     # run legs in closed loop, with different number of left/right steps
-
     def setThrustClosedLoop(self, leftTime,rightTime):
         thrust = [throttle[0], leftTime, throttle[1], rightTime, 0]
         xb_send(0, command.SET_THRUST_CLOSED_LOOP, pack('5h',*thrust))
     #    print "Throttle[0,1] = ",throttle[0],throttle[1],\
     #          "left", leftTime,"right", rightTime
+
 
     # get one packet of PID data from robot
     def getPIDdata(self):
@@ -87,9 +101,8 @@ class RunRobot:
                 rospy.signal_shutdown('Killed node. No return packet!')
                 shared.imudata.append(dummy_data) # use dummy data
                 break   
-        data = shared.imudata[0]  # convert string list to numbers
-    #    publish_data(data) # in top level module 
-        self.publish_state(data)
+        self.data = shared.imudata[0]  # convert string list to numbers
+        self.publish_state(self.data)
 
       #  print 'index =', data[0]
       #  print 'time = ', data[1]    # time is in microseconds
@@ -99,7 +112,7 @@ class RunRobot:
       #  print 'emf=',data[13:16]
 
     def publish_state(self, data):
-        smsg.header.seq = data[0]
+        smsg.header.seq = data[0]   # sequence number is overwritten by publish
         smsg.header.stamp.secs = int(data[1]/1e6)
         smsg.header.stamp.nsecs = data[1] - 1e6 * smsg.header.stamp.secs
         smsg.header.frame_id = self.robotname
@@ -111,39 +124,42 @@ class RunRobot:
         smsg.effort = [data[4], data[5]]            # PWM command            
 #        print 'smsgs =', smsg
         self.pub_state.publish(smsg)
+#        print 'seq = ', smsg.header.seq
 
   
 
     # execute move command
-    # initial - 2 steps straight, 2L+1R for right turn, 1L+2R for left turn
+    # initial - 4 steps straight, 3L+1R for right turn, 1L+3R for left turn
     # discrete approximation V_R = V_n + \omega / 2
     # V_L = V_n - \omega / 2
     # initial calculation assuming no slip - times in milliseconds
-    def proceed(self, vel, turn_rate):
-        leftTime = int(4*cycle * (vel - turn_rate/2) / LEG_VELOCITY)
-        rightTime = int(4 * cycle * (vel + turn_rate/2) / LEG_VELOCITY)
+    def run(self):
+        while True:
+            vel = self.linear_command
+            turn_rate = self.angular_command
+            leftTime = int(4*cycle * (vel - turn_rate/2) / LEG_VELOCITY)
+            rightTime = int(4 * cycle * (vel + turn_rate/2) / LEG_VELOCITY)
 
         # probably should normalize, but can at least bound leg run time
-        leftTime=max(0,leftTime)
-        leftTime=min(4*cycle,leftTime)
-        rightTime=max(0,rightTime)
-        rightTime=min(4*cycle,rightTime)
+            leftTime=max(0,leftTime)
+            leftTime=min(4*cycle,leftTime)
+            rightTime=max(0,rightTime)
+            rightTime=min(4*cycle,rightTime)
 
-        print 'setting run time left=%d  right=%d' %(leftTime, rightTime)
-        self.getPIDdata()
-        data = shared.imudata[0]
-        currentTime = time.time()   # time in seconds, floating point
-        endTime = currentTime + (4.0*cycle)/1000.0 # 4 stride motion segments
-        self.setThrustClosedLoop(leftTime, rightTime)
+            print 'setting run time left=%d  right=%d' %(leftTime, rightTime)
+            currentTime = time.time()   # time in seconds, floating point
+            endTime = currentTime + (4.0*cycle)/1000.0 # 4 stride motion segments
+            if currentTime < self.runtime: 
+                self.setThrustClosedLoop(leftTime, rightTime)
     # get telemetry data while closed loop is running
     # can't trust robot time - need to have python timer as well
     #    print 'currentTime = %f, endTime = %f' %(currentTime, endTime)
-        while(currentTime < endTime):
+            while(currentTime < endTime):
     #       time.sleep(0.1) # sample data every 0.1 sec
-            self.getPIDdata()  # delay is in getPIDdata()
-            data = shared.imudata[0]
-            currentTime = time.time()  # time in milliseconds
-            print 'index =', data[0],'currentTime=',data[1]/1000
+                self.getPIDdata()  # delay is in getPIDdata()
+                self.data = shared.imudata[0]
+                currentTime = time.time()  # time in milliseconds
+#                print 'index =', self.data[0],'currentTime=',self.data[1]/1000
        
 
 

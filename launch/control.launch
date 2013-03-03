@@ -5,11 +5,38 @@
 	  type="controller.py"
 	  launch-prefix="nice -n 10  xterm -bg orange -fg black -geometry 64x16+250+550 -title 'Controller Debug Info' -e"
 	  >
-	  <remap from="velCMD" to="VelFast"/>
+	  <remap from="velCMD" to="Velocity"/>
     </node>
 
- <!-- throttle to limit packets to running rate 2.0 Hz - subscriber queue 
-      does not seem to work  -->
+
+<!-- monitor optitrack/pose -->
+    <node pkg="rostopic" name="rostopic_3" type="rostopic" 
+          args="echo /optitrack/pose" 
+	  launch-prefix="nice -n 10 xterm -bg white -fg purple -geometry 64x16+350+300 -title 'rostopic_3 optitrack/pose' -e"
+	  >
+    </node>
+
+ <!-- comment out simulator if optitrack is working. sim2 spits out 100 Hz -->
+    <node pkg="Turner25"
+    	  name="Optitrack_sim2" 
+	  type="optitrack_sim2.py"
+	  launch-prefix="nice -n 15  xterm -bg white -fg black -geometry 64x8+400+350 -title 'Optitrack_sim2 Debug Info' -e"
+	  >
+	  <remap from="tf" to="optitrack/pose"/>
+    </node>
+
+<!--
+
+-->
+
+
+<!--   ***************** unused launch *******************   -->
+
+ <!-- throttle to limit packets to running rate 2.0 Hz - 
+      subscriber queue does not seem to work.
+      Switch to update control at 100 Hz, but process at slow rate in
+      sendCommand  -->
+<!--
     <node pkg="topic_tools"
     	  name="Throttle10Hz"
 	  type="throttle"
@@ -17,21 +44,6 @@
 	  launch-prefix="nice -n 10"
 	  >
     </node>
-
-    <node pkg="rostopic" name="rostopic_3" type="rostopic" 
-          args="echo /optitrack/pose" 
-	  launch-prefix="nice -n 10 xterm -bg white -fg purple -geometry 64x16+350+300 -title 'rostopic_3 optitrack/pose' -e"
-	  >
-    </node>
-
- <!-- comment out simulator if optitrack is working. sim2 sits out 100 Hz -->
-    <node pkg="Turner25"
-    	  name="Optitrack_sim2" 
-	  type="optitrack_sim2.py"
-	  launch-prefix="nice -n 10  xterm -bg white -fg black -geometry 64x16+400+350 -title 'Optitrack_sim Debug Info' -e"
-	  >
-	  <remap from="tf" to="optitrack/pose"/>
-    </node>
-
+-->
 
 </launch>
