@@ -74,10 +74,11 @@ if __name__ == '__main__':
 # add default value
     robotname = 'VelociRoACH1'
     Robot = imageproc.run_robot_class.RunRobot(robotname)
+    Robot.robot_ready = False    
     rospy.Subscriber('velCmd',
                      turtlesim.msg.Velocity,
                      handle_command,
-                     robotname)
+                     robotname, 1)
 #    robot_state_pub = rospy.Publisher('robotState', sensor_msgs.msg.JointState)
     try:
         print 'initializing robot'

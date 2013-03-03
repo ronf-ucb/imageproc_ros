@@ -86,6 +86,7 @@ def optitrack_sim(robotname):
 if __name__ == '__main__':
     rospy.init_node('Optitrack_sim')
     robotname = 'VelociRoACH1'
+    print 'Optitrack Sim 2 - ', 1.0/TIME_STEP, ' Hz messages'
 # add default value
     try:
          optitrack_sim(robotname)

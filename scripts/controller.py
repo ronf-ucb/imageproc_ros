@@ -55,6 +55,7 @@ MAX_TURN = 3.0 # rad/sec
 
 def handle_turner_pose(msg, robotname):
     global state_initialized
+#    robotname = 'roach'
 #    print "msg=", msg
     getState(msg)
     if state_initialized == False:
@@ -79,7 +80,7 @@ def handle_turner_pose(msg, robotname):
 
 # put initial target location a bit in front of robot by about 0.5 m
 def initialize_target():
-    target[0] = state[0] + 0.5  # x_o
+    target[0] = state[0] + 0.0  # x_o
     target[1] = state[1] # y_o
     target[2] = 0.0  # orientation should be straight
 
@@ -107,7 +108,7 @@ if __name__ == '__main__':
     robotname = 'VelociRoACH1'
     rospy.Subscriber('/optitrack/pose',
                      geometry_msgs.msg.TransformStamped,
-                     handle_turner_pose,
-                     robotname)
+                     handle_turner_pose, robotname,
+                     1)  # queue size 1
     pub= rospy.Publisher('velCMD', turtlesim.msg.Velocity)
     rospy.spin()

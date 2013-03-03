@@ -59,7 +59,7 @@ RESET_ROBOT = False
 # now uses back emf velocity as d term
 #motorgains = [300,0,10,0,50, 300,0,10,0,50]
 # try just left motor
-motorgains = [400,0,400,0,0, 400,0,400,0,0]
+motorgains = [600,200,400,0,0, 600,200,400,0,0]
 throttle = [0,0]
 duration = [200,200]  # length of run
 cycle = 100 # ms for a leg cycle
@@ -149,7 +149,7 @@ def robot_init():
     print 'read motorpos and zero'
     print "Done Initializing"
     shared.robot_ready = True
-                
+    return True
         
         
 
