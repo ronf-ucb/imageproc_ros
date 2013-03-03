@@ -31,41 +31,62 @@
 
 # R. Fearing Feb. 2013  basic commands sent out to robot for initial
 # closed loop control through ROS
-# Feb. 28, 2013  changed to using Robot 
 
 import roslib
 roslib.load_manifest('Turner25')
 import rospy
 import turtlesim.msg
 import sensor_msgs.msg
-import std_msgs.msg
 from imageproc.robot_init import robot_init
+# from imageproc.robot_init import telemetry
 import imageproc.shared
-import imageproc.run_robot_class
+from imageproc import run_robot
+from time import sleep
+smsg = sensor_msgs.msg.JointState()
+
+def handle_command(msg, robotname):
+#    print 'desired linear vel ' + str(msg.linear)
+#    print 'desired angular rate ' + str(msg.angular)
+    sleep(0.025)  # wait to avoid overfilling Basestation queue
+    if imageproc.shared.robot_ready == True:
+        print '\n des. lin. vel. %6.2f' % msg.linear,
+        print 'des. ang. rate %6.2f' % msg.angular,
+        print 'robot = ' + robotname
+        run_robot.proceed(msg.linear, msg.angular)
+        data = run_robot.getPIDdata()
+        publish_data(data)
+    else: 
+        print robotname + 'not ready'
+
+
+def publish_data(data):
+    smsg.header.seq = data[0]
+    smsg.header.stamp.secs = int(data[1]/1e6) 
+    smsg.header.stamp.nsecs = data[1] - 1e6 * smsg.header.stamp.secs
+
+    smsg.name = [ 'left', 'right']
+    smsg.position = [data[2], data[3]]            # leg encoder count
+    smsg.velocity = [data[13], data[14]]          # motor back emf
+    smsg.effort = [data[4], data[5]]            # PWM command
+    robot_state_pub.publish(smsg)
+
 
 
 if __name__ == '__main__':
-    robotname = 'VelociRoACH1'
-    Robot = imageproc.run_robot_class.RunRobot(robotname)
-    Robot.robot_ready = False
-    Robot.runtime = 0.0    # initial run time set to 0 sec
+#    global robot_ready
+    imageproc.shared.robot_ready = False     # don't send commands until ready
     rospy.init_node('Turner25')
-# topic for commanded leg velocities from controller node
+# add default value
+    robotname = 'VelociRoACH1'
     rospy.Subscriber('velCmd',
                      turtlesim.msg.Velocity,
-                     Robot.callback_command,
-#                     handle_command,
+                     handle_command,
                      robotname)
-# topic for starting and starting robot
-    rospy.Subscriber('RunTime', 
-                     std_msgs.msg.Float32,
-                     Robot.callback_runtime)
-
+    robot_state_pub = rospy.Publisher('robotState', sensor_msgs.msg.JointState)
     try:
         print 'initializing robot'
-        Robot.robot_ready = robot_init()
-        print "robot_ready = ", Robot.robot_ready
-        Robot.run()       # run robot using callback messages
+        robot_init()
+        print "robot_ready = ", imageproc.shared.robot_ready
     except rospy.ROSInterruptException:
         pass
     rospy.spin()

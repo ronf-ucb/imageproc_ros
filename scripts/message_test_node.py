@@ -28,44 +28,49 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
+# R. Fearing Feb. 2013
+# test ROS sensor messages 
 
-# R. Fearing Feb. 2013  basic commands sent out to robot for initial
-# closed loop control through ROS
-# Feb. 28, 2013  changed to using Robot 
-
+import sys
+# sys.path.append('/opt/ros/groovy/lib/python2.7/dist-packages')
 import roslib
 roslib.load_manifest('Turner25')
 import rospy
+import rosgraph
 import turtlesim.msg
 import sensor_msgs.msg
-import std_msgs.msg
-from imageproc.robot_init import robot_init
-import imageproc.shared
-import imageproc.run_robot_class
+
+smsg = sensor_msgs.msg.JointState()
+
+def handle_command(msg, robotname):
+    print 'desired linear vel ' + str(msg.linear)
+    print 'desired angular rate ' + str(msg.angular)
+    print 'robot = ' + robotname
+
+    smsg.header.seq = 100
+    smsg.header.stamp.secs = 3.3
+    smsg.header.stamp.nsecs = 2357786
+
+    smsg.name = [ 'left', 'right']
+    smsg.position = [0.3, 0.7]            # leg encoder count
+    smsg.velocity = [1.35, 2.22]          # motor back emf
+    smsg.effort = [1024, 2048]            # PWM command
+    robot_state_pub.publish(smsg)
+
+# could monitor telem data and send message of current state?
 
 
 if __name__ == '__main__':
+    rospy.init_node('SensorMsg')
+# add default value
     robotname = 'VelociRoACH1'
-    Robot = imageproc.run_robot_class.RunRobot(robotname)
-    Robot.robot_ready = False
-    Robot.runtime = 0.0    # initial run time set to 0 sec
-    rospy.init_node('Turner25')
-# topic for commanded leg velocities from controller node
     rospy.Subscriber('velCmd',
                      turtlesim.msg.Velocity,
-                     Robot.callback_command,
-#                     handle_command,
+                     handle_command,
                      robotname)
-# topic for starting and starting robot
-    rospy.Subscriber('RunTime', 
-                     std_msgs.msg.Float32,
-                     Robot.callback_runtime)
-
+    robot_state_pub = rospy.Publisher('robotState', sensor_msgs.msg.JointState)
     try:
-        print 'initializing robot'
-        Robot.robot_ready = robot_init()
-        print "robot_ready = ", Robot.robot_ready
-        Robot.run()       # run robot using callback messages
+        print 'initializing node'
     except rospy.ROSInterruptException:
         pass
     rospy.spin()
