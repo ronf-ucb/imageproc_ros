@@ -42,6 +42,7 @@ PI = 3.1415926536
 MPOS_SCALE = 2.0 * PI/ (2**16)
 
 smsg = sensor_msgs.msg.JointState()
+gmsg = sensor_msgs.msg.Imu()
 
 LEG_VELOCITY = 2.0 # maximum leg m/sec
 
@@ -57,6 +58,7 @@ class RunRobot:
         self.robotname = name
         print "Robot = ", self.robotname
         self.pub_state = rospy.Publisher('robotState', sensor_msgs.msg.JointState)
+        self.pub_gyro = rospy.Publisher('robotGyro', sensor_msgs.msg.Imu)
 
 # store published command locally to be accessed by velocity sending
     def callback_command(self, msg, robotname):
@@ -88,12 +90,12 @@ class RunRobot:
         # data format '=LLll'+13*'h' 
         shared.imudata = [] #reset stored data
         xb_send(0, command.GET_PID_TELEMETRY, pack('h',0))
-        time.sleep(0.075)   # 10 Hz, faster could choke Basestation
+        time.sleep(0.1)   # 10 Hz, faster could choke Basestation
         while shared.pkts == 0:
             print "Retry after 0.1 seconds. Got only %d packets" %shared.pkts
-            rospy.logerr('retry getPIDdata')
-            time.sleep(0.1)
+            rospy.logerr('getPIDdata: retry GET_PID_TELEMETRY')
             xb_send(0, command.GET_PID_TELEMETRY, pack('h',0))
+            time.sleep(0.1)
             count = count + 1
             if count > 5:
                 print 'Killed SendCommand. No return packet.'
@@ -115,7 +117,9 @@ class RunRobot:
         smsg.header.seq = data[0]   # sequence number is overwritten by publish
         smsg.header.stamp.secs = int(data[1]/1e6)
         smsg.header.stamp.nsecs = data[1] - 1e6 * smsg.header.stamp.secs
-        smsg.header.frame_id = self.robotname
+#        smsg.header.frame_id = self.robotname
+        smsg.header.frame_id = str(data[0]) # sequence number from ImageProc
+
 
         smsg.name = [ 'left', 'right']
 # leg encoder count in radians:

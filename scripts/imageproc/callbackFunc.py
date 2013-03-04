@@ -16,7 +16,7 @@ def xbee_received(packet):
     status = ord(rf_data[0])
     type = ord(rf_data[1])
     data = rf_data[2:]
-    
+#    print 'callback cmd:', type
     if (type == command.GET_IMU_DATA):
         datum = unpack('l6h', data)
         #datum = unpack('l3f', data)
@@ -92,7 +92,8 @@ def xbee_received(packet):
                 print str(shared.pkts) + "<>" + str(telem_index),
             shared.imudata.append(datum)  # save data anyway
   
-    else:    
+    else:
+        print 'callback unknown cmd:', type
         pass
 
 
