@@ -10,7 +10,7 @@
 
 <!--  ***** set  robot run time  *************      -->
     <node pkg="rostopic" name="RunTimeSet" type="rostopic" 
-          args="pub -r 0.1 RunTime std_msgs/Float32 2.0" 
+          args="pub -r 0.1 RunTime std_msgs/Float32 10.0" 
 	  launch-prefix="nice -n 10 xterm -bg white -fg purple -geometry 64x8+175+475 -title 'rostopic RunTime' -e"
 	  >
     	<remap from="TurnTurtle/pose" to="turtle1/pose"/>

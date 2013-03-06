@@ -171,8 +171,8 @@ if __name__ == '__main__':
         write_topic(topic,msg,t)
         count = count + 1
         # look at 50 secs of data at 100 Hz
-        if count > 5000 * len(topic_list):
-            break
+#        if count > 10000 * len(topic_list):
+#            break
     bag.close()
     save_data()
 

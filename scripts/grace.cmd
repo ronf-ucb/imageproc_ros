@@ -142,7 +142,7 @@ yaxis  label "optitrack (m,rad)"
     s3 legend "cmdV"
     s4 legend "cmd turn"
 view ymax 0.37
-legend 0.98, 0.37
+legend 1.1, 0.37
 legend char size 0.5
 legend box off
 autoscale
