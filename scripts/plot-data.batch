@@ -1,0 +1,4 @@
+# python turnerbag2data.py 
+python data-clean.py > Data/telemdata.dat
+xmgrace -batch grace.cmd -nxy Data/telemdata.dat
+
