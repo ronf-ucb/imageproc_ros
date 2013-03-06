@@ -42,7 +42,7 @@ PI = 3.1415926536
 MPOS_SCALE = 2.0 * PI/ (2**16)
 
 smsg = sensor_msgs.msg.JointState()
-gmsg = sensor_msgs.msg.Imu()
+imsg = sensor_msgs.msg.Imu()    # IMU message
 
 LEG_VELOCITY = 2.0 # maximum leg m/sec
 
@@ -117,19 +117,28 @@ class RunRobot:
         smsg.header.seq = data[0]   # sequence number is overwritten by publish
         smsg.header.stamp.secs = int(data[1]/1e6)
         smsg.header.stamp.nsecs = data[1] - 1e6 * smsg.header.stamp.secs
-#        smsg.header.frame_id = self.robotname
         smsg.header.frame_id = str(data[0]) # sequence number from ImageProc
 
-
         smsg.name = [ 'left', 'right']
-# leg encoder count in radians:
+        # leg encoder count in radians:
         smsg.position = [data[2]*MPOS_SCALE, data[3]*MPOS_SCALE]
         smsg.velocity = [data[13], data[14]]          # motor back emf       
         smsg.effort = [data[4], data[5]]            # PWM command            
 #        print 'smsgs =', smsg
         self.pub_state.publish(smsg)
-#        print 'seq = ', smsg.header.seq
 
+        imsg.header.seq = data[0]   # sequence number is overwritten by publish
+        imsg.header.stamp.secs = int(data[1]/1e6)
+        imsg.header.stamp.nsecs = data[1] - 1e6 * smsg.header.stamp.secs
+        imsg.header.frame_id = str(data[0]) # sequence number from ImageProc
+
+        imsg.angular_velocity.x = data[6]
+        imsg.angular_velocity.y = data[7]
+        imsg.angular_velocity.z = data[8]
+        imsg.linear_acceleration.x = data[10]
+        imsg.linear_acceleration.y = data[11]
+        imsg.linear_acceleration.z = data[12]
+        self.pub_gyro.publish(imsg)
   
 
     # execute move command

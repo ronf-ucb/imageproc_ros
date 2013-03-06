@@ -25,6 +25,13 @@
 	  launch-prefix="nice -n 10 xterm -bg black -fg yellow -geometry 64x16+400+350 -title 'rostopic_4 robotState' -e"
 	  >
     </node>
+
+<!-- monitor optitrack/pose -->
+    <node pkg="rostopic" name="rostopic_robotGyro" type="rostopic" 
+          args="echo /robotGyro" 
+	  launch-prefix="nice -n 10 xterm -bg black -fg orange -geometry 64x16+450+400 -title 'rostopic_5 robotGyro' -e"
+	  >
+    </node>
     
 
 </launch>
