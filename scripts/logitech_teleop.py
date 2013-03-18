@@ -18,8 +18,8 @@ def main():
     rospy.init_node('logitech_teleop')
 
     # TODO(andrew.chen) configureable topic
-    pub = rospy.Publisher('/cmd_vel/input', Twist)
-    rospy.Subscriber("/joy", Joy, joystickChanged)
+    pub = rospy.Publisher('cmd_vel', Twist)
+    rospy.Subscriber("joy", Joy, joystickChanged)
     rospy.spin()
 
 def joystickChanged(data):

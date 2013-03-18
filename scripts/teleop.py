@@ -53,18 +53,20 @@ def handle_command(msg, robotname):
     
 if __name__ == '__main__':
     global serial
-    rospy.init_node('imageproc_ros')
+    rospy.init_node('teleop')
 
     # add default value
     robotname = 'VelociRoACH1'
-    rospy.Subscriber('/cmd_vel/input',
+    rospy.Subscriber('cmd_vel',
                      geometry_msgs.msg.Twist,
                      handle_command,
                      robotname)
 
+    device = rospy.get_param('~device', '/dev/ttyUSB1')
+
     try:
         print 'initializing robot'
-        serial = serial_comm.SerialComm("/dev/ttyUSB0")
+        serial = serial_comm.SerialComm(device)
        #robot_init()
     except rospy.ROSInterruptException:
         pass
