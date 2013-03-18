@@ -1,5 +1,5 @@
 <launch>
-    <node name="logitech_teleop" pkg="imageproc_ros" type="logitech_teleop.py" output="screen">
+    <node name="logitech_teleop" pkg="imageproc_ros" type="twist_logitech_joy.py" output="screen">
     	<remap from="cmd_vel" to="cmd_vel/"/>
     	<rosparam param="dev">/dev/input/js0</rosparam>
     </node>

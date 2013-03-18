@@ -9,13 +9,13 @@ from geometry_msgs.msg import *
 from sensor_msgs.msg import *
 
 '''
-logitech_teleop.py sends Twist commands from a joystick.
+twist_logitech_joy.py sends Twist commands from a joystick.
 '''
 
 def main():
     global pub
     rospy.loginfo("starting Twist Publishing via Joystick...")
-    rospy.init_node('logitech_teleop')
+    rospy.init_node('twist_logitech_joy')
 
     # TODO(andrew.chen) configureable topic
     pub = rospy.Publisher('cmd_vel', Twist)
