@@ -1,0 +1,9 @@
+<launch>
+    <node name="logitech_teleop" pkg="imageproc_ros" type="logitech_teleop.py" output="screen">
+    	<remap from="cmd_vel" to="cmd_vel/"/>
+    </node>
+    <node name="turner_teleop" pkg="imageproc_ros" type="teleop.py" output="screen" />
+    <node name="joy_node" pkg="joy" type="joy_node" output="screen" />
+
+</launch>
+
