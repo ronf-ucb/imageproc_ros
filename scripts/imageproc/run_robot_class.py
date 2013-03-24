@@ -33,8 +33,11 @@ import sys
 #sys.path.append('/opt/ros/groovy/lib/python2.7/dist-packages')
 sys.path.append('../') # add path to up one level
 import rospy
-import robot_init
-from robot_init import *
+import threading
+from lib import command
+from struct import pack
+#import robot_init
+#from robot_init import *
 # from turner_commands import publish_data
 # import turner_commands.publish_data
 import sensor_msgs.msg
@@ -46,15 +49,17 @@ imsg = sensor_msgs.msg.Imu()    # IMU message
 
 LEG_VELOCITY = 2.0 # maximum leg m/sec
 
-class RunRobot:
+class RunRobot(threading.Thread):
     robot_ready = False
     linear_command = 0.0
     angular_command = 0.0
     data = []   # telemetry packet returned from robot
     runtime = 0.0
     robot_onoff = False
+    running = False
 
     def __init__(self, name, comm):
+        threading.Thread.__init__(self)
         self.robotname = name
         self.comm = comm
         print "Robot = ", self.robotname
@@ -150,7 +155,8 @@ class RunRobot:
     # V_L = V_n - \omega / 2
     # initial calculation assuming no slip - times in milliseconds
     def run(self):
-        while True:
+        self.running = True
+        while self.running:
 
             left_throttle = 1200 * self.linear_command - 1200 * self.angular_command
             right_throttle = 1200 * self.linear_command + 1200 * self.angular_command
@@ -189,3 +195,5 @@ class RunRobot:
 
 
 '''
+    def stop(self):
+        self.running = False

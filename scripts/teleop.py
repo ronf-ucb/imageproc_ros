@@ -37,10 +37,14 @@ roslib.load_manifest('imageproc_ros')
 import rospy
 import geometry_msgs.msg
 import imageproc.serial_comm
+import imageproc.run_robot_class
 
 pos_gain = 4000   # straight throttle component
 turn_gain = 4000   # turn gain component
 import time
+
+def stopRobot():
+    robot.stop()
 
 def handle_command(msg, robotname):
     print 'desired linear vel ' + str(msg.linear.x)
@@ -49,7 +53,8 @@ def handle_command(msg, robotname):
     left_throttle = pos_gain * msg.linear.x - turn_gain * msg.angular.z
     right_throttle = pos_gain * msg.linear.x + turn_gain * msg.angular.z
     print 'setting thrust left=%d  right=%d' %(left_throttle, right_throttle)
-    serial.setThrust(left_throttle, right_throttle, 100)
+    robot.callback_command(msg, robotname)
+
     
     
 if __name__ == '__main__':
@@ -62,15 +67,16 @@ if __name__ == '__main__':
                      geometry_msgs.msg.Twist,
                      handle_command,
                      robotname)
+    rospy.on_shutdown(stopRobot)
 
-    device = rospy.get_param('~device', '/dev/ttyUSB1')
+    device = rospy.get_param('~device', '/dev/ttySAC1')
     print device
 
     try:
         print 'initializing robot'
         serial = imageproc.serial_comm.SerialComm(device)
-        #robot = imageproc.run_robot_class.RunRobot(robotname, serial)
-       #robot_init()
+        robot = imageproc.run_robot_class.RunRobot(robotname, serial)
+        robot.start()
     except rospy.ROSInterruptException:
         pass
     rospy.spin()
