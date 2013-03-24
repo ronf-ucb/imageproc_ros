@@ -4,6 +4,7 @@ import serial
 import time
 import struct
 import binascii
+from callbackFunc import xbee_received
 
 from lib import command
 
@@ -51,11 +52,11 @@ class SerialComm(comm.Comm):
         self.ser.write(data)
 
     def poll(self):
-        print "polling"
+        #print "polling"
         if self.SerialCommState is SerialCommState.Length:
             self.lengthByte = ord(self.ser.read(1))
             self.SerialCommState = SerialCommState.ChLength
-            print "length=" + str(self.lengthByte)
+            #print "length=" + str(self.lengthByte)
         elif self.SerialCommState is SerialCommState.ChLength:
             self.lengthCheck = ord(self.ser.read(1))
             print self.lengthCheck
@@ -68,18 +69,24 @@ class SerialComm(comm.Comm):
         elif self.SerialCommState is SerialCommState.Data:
             if self.lengthToGo > 0:
                 self.data = self.data + self.ser.read(1)
-                print self.data
+                #print self.data
                 self.lengthToGo = self.lengthToGo - 1
             else:
                 self.SerialCommState = SerialCommState.Checksum
         elif self.SerialCommState is SerialCommState.Checksum:
-            checksum = ord(ser.read(1))
+            checksum = ord(self.ser.read(1))
             sum = 0xff
             for c in self.data:
                 sum = sum + ord(c)
             sum = sum & 0xff
             if checksum is sum:
-                print "read success=" + binascii.hexlify(data)
+                #print "read success=" + binascii.hexlify(self.data)
+                print "command status=" + str(ord(self.data[0]))
+                print "command type=" + str(ord(self.data[1]))
+                receiveddata = struct.unpack('16h', self.data)
+                for i in range(2,len(receiveddata)):
+                    print "data[" + str(i) + "]=" + str(ord(receiveddata[i]))
+                self.data = ""
             self.SerialCommState = SerialCommState.Length
 
     def form_payload(self, status, type, data):
@@ -105,12 +112,21 @@ class SerialComm(comm.Comm):
         self.send_command(0, command.SET_THRUST_OPEN_LOOP, struct.pack("3h",*thrust))
         print "cmdSetThrust " + str(thrust)
 
-'''
-if __name__ == '__main__':
-    s = SerialComm("/dev/ttyUSB0")
-    s.setThrust(0xf80, 0xf80, 500)
-    #s.setThrust(1200, 1200, 400)
-#    s.send_command(0, 0x70, "")
-    #s.send_command(0, 0x80, "\x00\x04\x00\x04")
-'''
 
+if __name__ == '__main__':
+    s = SerialComm("/dev/ttyUSB2")
+
+#    s.setThrust(0xf80, 0xf80, 500)
+    #s.setThrust(1200, 1200, 400)
+    '''
+    s.send_command(0, 0x72, struct.pack('h', 0))
+    s.start()
+    while 1:
+        s.send_command(0, 0x72, struct.pack('h', 0))
+        time.sleep(.1)
+    '''
+    #to send to bird
+    #s.send_command(0, 0x21,  pack('B', 1))
+    s.send_command(0, 0x71, chr(0) + chr(0x21) + ''.join(struct.pack('B', 2)))
+    s.send_command(0, 0x71, chr(0) + chr(0x25) + ''.join(struct.pack('3f', 0.0,1.0,0.0)))
+    #s.send_command(0, 0x80, "\x00\x04\x00\x04")

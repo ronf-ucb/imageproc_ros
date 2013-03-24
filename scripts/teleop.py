@@ -36,9 +36,10 @@ import roslib
 roslib.load_manifest('imageproc_ros')
 import rospy
 import geometry_msgs.msg
-from imageproc import serial_comm
-pos_gain = 1200   # straight throttle component
-turn_gain = 1200   # turn gain component
+import imageproc.serial_comm
+
+pos_gain = 4000   # straight throttle component
+turn_gain = 4000   # turn gain component
 import time
 
 def handle_command(msg, robotname):
@@ -52,7 +53,7 @@ def handle_command(msg, robotname):
     
     
 if __name__ == '__main__':
-    global serial
+    global serial, robot
     rospy.init_node('teleop')
 
     # add default value
@@ -63,10 +64,12 @@ if __name__ == '__main__':
                      robotname)
 
     device = rospy.get_param('~device', '/dev/ttyUSB1')
+    print device
 
     try:
         print 'initializing robot'
-        serial = serial_comm.SerialComm(device)
+        serial = imageproc.serial_comm.SerialComm(device)
+        #robot = imageproc.run_robot_class.RunRobot(robotname, serial)
        #robot_init()
     except rospy.ROSInterruptException:
         pass
