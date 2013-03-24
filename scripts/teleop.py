@@ -54,8 +54,6 @@ def handle_command(msg, robotname):
     right_throttle = pos_gain * msg.linear.x + turn_gain * msg.angular.z
     print 'setting thrust left=%d  right=%d' %(left_throttle, right_throttle)
     robot.callback_command(msg, robotname)
-
-    
     
 if __name__ == '__main__':
     global serial, robot
