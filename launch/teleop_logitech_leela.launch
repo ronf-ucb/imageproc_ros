@@ -1,0 +1,14 @@
+<launch>
+    <node name="logitech_teleop" pkg="imageproc_ros" type="twist_logitech_joy.py" output="screen">
+    </node>
+    <node name="turner_teleop" pkg="imageproc_ros" type="teleop.py" output="screen">
+        <rosparam param="device">/dev/ttySAC1</rosparam>
+        <rosparam param="invertLeft">True</rosparam>
+        <rosparam param="invertRight">False</rosparam>
+        <rosparam param="minThrottle">-2000</rosparam>
+        <rosparam param="maxThrottle">2000</rosparam>
+    </node>
+    <node name="estop" pkg="imageproc_ros" type="emergencyStop.py" output="screen" />
+
+</launch>
+
