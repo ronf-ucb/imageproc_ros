@@ -18,7 +18,7 @@ def main():
     rospy.init_node('twist_logitech_joy')
 
     # TODO(andrew.chen) configureable topic
-    pub = rospy.Publisher('cmd_vel', Twist)
+    pub = rospy.Publisher('safe_cmd_vel', Twist)
     rospy.Subscriber("joy", Joy, joystickChanged)
     rospy.spin()
 
