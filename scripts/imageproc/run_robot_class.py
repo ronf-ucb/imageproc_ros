@@ -197,3 +197,4 @@ class RunRobot(threading.Thread):
 '''
     def stop(self):
         self.running = False
+        self._Thread__stop()

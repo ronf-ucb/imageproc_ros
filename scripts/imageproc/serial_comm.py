@@ -42,6 +42,10 @@ class SerialComm(comm.Comm):
         while self.running:
             self.poll()
 
+    def stop(self):
+        self.running = False
+        self._Thread__stop()
+
 
     def subscribe(self, function):
         """Registers a callback on command received"""

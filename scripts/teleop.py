@@ -44,6 +44,7 @@ turn_gain = 4000   # turn gain component
 import time
 
 def stopRobot():
+    serial.stop()
     robot.stop()
 
 def handle_command(msg, robotname):
@@ -73,6 +74,7 @@ if __name__ == '__main__':
     try:
         print 'initializing robot'
         serial = imageproc.serial_comm.SerialComm(device)
+        serial.start()
         robot = imageproc.run_robot_class.RunRobot(robotname, serial)
         robot.start()
     except rospy.ROSInterruptException:
