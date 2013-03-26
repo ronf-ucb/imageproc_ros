@@ -36,10 +36,16 @@ import roslib
 roslib.load_manifest('imageproc_ros')
 import rospy
 import geometry_msgs.msg
-from imageproc import serial_comm
-pos_gain = 2000   # straight throttle component
-turn_gain = 2000   # turn gain component
+import imageproc.serial_comm
+import imageproc.run_robot_class
+
+pos_gain = 4000   # straight throttle component
+turn_gain = 4000   # turn gain component
 import time
+
+def stopRobot():
+    serial.stop()
+    robot.stop()
 
 def handle_command(msg, robotname):
     print 'desired linear vel ' + str(msg.linear.x)
@@ -52,13 +58,14 @@ def handle_command(msg, robotname):
     left_throttle = clamp(left_throttle, minThrottle, maxThrottle)
     right_throttle = clamp(right_throttle, minThrottle, maxThrottle)
     print 'setting thrust left=%d  right=%d' %(left_throttle, right_throttle)
-    serial.setThrust(left_throttle, right_throttle, 100)
+    #serial.setThrust(left_throttle, right_throttle, 100)
+    robot.callback_command(msg, robotname)
 
 def clamp(value, minVal, maxVal):
     return max(minVal, min(maxVal, value)) 
     
 if __name__ == '__main__':
-    global serial
+    global serial, robot
     global invertLeft, invertRight, minThrottle, maxThrottle
     rospy.init_node('teleop')
 
@@ -68,18 +75,21 @@ if __name__ == '__main__':
                      geometry_msgs.msg.Twist,
                      handle_command,
                      robotname)
+    rospy.on_shutdown(stopRobot)
 
     device = rospy.get_param('~device', '/dev/ttySAC1')
     invertLeft = rospy.get_param('~invertLeft', True)
-    invertRight = rospy.get_param('~invertRight', False)
+    invertRight = rospy.get_param('~invertRight', True)
     minThrottle = rospy.get_param('~minThrottle', -4000)
     maxThrottle = rospy.get_param('~maxThrottle', 4000)
 
 
     try:
         print 'initializing robot'
-        serial = serial_comm.SerialComm(device)
-       #robot_init()
+        serial = imageproc.serial_comm.SerialComm(device)
+        serial.start()
+        robot = imageproc.run_robot_class.RunRobot(robotname, serial)
+        robot.start()
     except rospy.ROSInterruptException:
         pass
     rospy.spin()

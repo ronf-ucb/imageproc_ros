@@ -1,0 +1,16 @@
+<launch>
+    <node name="logitech_teleop" pkg="imageproc_ros" type="twist_logitech_joy.py" output="screen">
+    	<remap from="cmd_vel" to="cmd_vel/"/>
+    	<rosparam param="dev">/dev/input/js0</rosparam>
+    </node>
+    <node name="joy_node" pkg="joy" type="joy_node" output="screen" />
+
+    <!--
+    <node name="turner_teleop" pkg="imageproc_ros" type="turner_commands.py" output="screen">
+        <rosparam param="device">/dev/ttyUSB0</rosparam>
+    </node>
+    -->
+
+
+</launch>
+
