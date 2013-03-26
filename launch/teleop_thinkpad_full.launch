@@ -5,8 +5,11 @@
         <rosparam param="device">/dev/ttyUSB0</rosparam>
         <rosparam param="invertLeft">True</rosparam>
         <rosparam param="invertRight">True</rosparam>
-        <rosparam param="minThrottle">-2000</rosparam>
-        <rosparam param="maxThrottle">2000</rosparam>
+        <rosparam param="minThrottle">-1000</rosparam>
+        <rosparam param="maxThrottle">1000</rosparam>
+        <rosparam param="linearGain">2400</rosparam>
+        <rosparam param="angularGain">2400</rosparam>
+
     </node>
     <node name="estop" pkg="imageproc_ros" type="emergencyStop.py" output="screen" />
     <node name="joy_node" pkg="joy" type="joy_node" output="screen" />

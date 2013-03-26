@@ -34,6 +34,7 @@ import sys
 sys.path.append('../') # add path to up one level
 import rospy
 import threading
+import time
 from lib import command
 from struct import pack
 #import robot_init
@@ -48,6 +49,11 @@ smsg = sensor_msgs.msg.JointState()
 imsg = sensor_msgs.msg.Imu()    # IMU message
 
 LEG_VELOCITY = 2.0 # maximum leg m/sec
+
+# TODO(ajc) find a home for this
+def clamp(value, minVal, maxVal):
+    return max(minVal, min(maxVal, value))
+
 
 class RunRobot(threading.Thread):
     robot_ready = False
@@ -66,6 +72,20 @@ class RunRobot(threading.Thread):
         self.pub_state = rospy.Publisher('robotState', sensor_msgs.msg.JointState)
         self.pub_gyro = rospy.Publisher('robotGyro', sensor_msgs.msg.Imu)
 
+        self.invertLeft = rospy.get_param('~invertLeft', True)
+        self.invertRight = rospy.get_param('~invertRight', True)
+        self.minThrottle = rospy.get_param('~minThrottle', -0)
+        self.maxThrottle = rospy.get_param('~maxThrottle', 0)
+        self.linearGain = rospy.get_param('~linearGain', 2400)
+        self.angularGain = rospy.get_param('~angularGain', 2400)
+
+        print "invertLeft=" + str(self.invertLeft)
+        print "invertRight=" + str(self.invertRight)
+        print "minThrottle=" + str(self.minThrottle)
+        print "maxThrottle=" + str(self.invertLeft)
+        print "linearGain=" + str(self.linearGain)
+        print "angularGain=" + str(self.angularGain)
+
 # store published command locally to be accessed by velocity sending
     def callback_command(self, msg, robotname):
         self.linear_command = msg.linear.x
@@ -76,10 +96,14 @@ class RunRobot(threading.Thread):
         print 'robot runtime =', msg.data, 'end time =', self.runtime
 
     def setThrust(self, throttle0, throttle1, duration):
+        throttle0 = -throttle0 if self.invertLeft else throttle0
+        throttle1 = -throttle1 if self.invertRight else throttle1
+        throttle0 = clamp(throttle0, self.minThrottle, self.maxThrottle)
+        throttle1 = clamp(throttle1, self.minThrottle, self.maxThrottle)        
         thrust = [throttle0, throttle1, duration]
         self.comm.send_command(0, command.SET_THRUST_OPEN_LOOP, pack("3h",*thrust))
 #        self.comm.send_command(0, command.SET_THRUST, pack("3h",*thrust))        
-        print "cmdSetThrust " + str(thrust)
+        #print "cmdSetThrust " + str(thrust)
 
     # run legs in closed loop, with different number of left/right steps
     def setThrustClosedLoop(self, leftTime,rightTime):
@@ -158,11 +182,12 @@ class RunRobot(threading.Thread):
         self.running = True
         while self.running:
 
-            left_throttle = 1200 * self.linear_command - 1200 * self.angular_command
-            right_throttle = 1200 * self.linear_command + 1200 * self.angular_command
+
+            left_throttle = self.linearGain * self.linear_command - self.angularGain * self.angular_command
+            right_throttle = self.linearGain * self.linear_command + self.angularGain * self.angular_command
 
             self.setThrust(left_throttle, right_throttle, 100)
-
+            time.sleep(.01)
 
             '''
             vel = self.linear_command
@@ -198,3 +223,7 @@ class RunRobot(threading.Thread):
     def stop(self):
         self.running = False
         self._Thread__stop()
+
+
+
+

@@ -38,51 +38,22 @@ import rospy
 import geometry_msgs.msg
 import imageproc.serial_comm
 import imageproc.run_robot_class
-
-pos_gain = 4000   # straight throttle component
-turn_gain = 4000   # turn gain component
 import time
 
 def stopRobot():
     serial.stop()
     robot.stop()
 
-def handle_command(msg, robotname):
-    print 'desired linear vel ' + str(msg.linear.x)
-    print 'desired angular rate ' + str(msg.angular.z)
-    print 'robot = ' + robotname
-    left_throttle = pos_gain * msg.linear.x - turn_gain * msg.angular.z
-    right_throttle = pos_gain * msg.linear.x + turn_gain * msg.angular.z
-    left_throttle =  -left_throttle if invertLeft else left_throttle
-    right_throttle = -right_throttle if invertRight else right_throttle
-    left_throttle = clamp(left_throttle, minThrottle, maxThrottle)
-    right_throttle = clamp(right_throttle, minThrottle, maxThrottle)
-    print 'setting thrust left=%d  right=%d' %(left_throttle, right_throttle)
-    #serial.setThrust(left_throttle, right_throttle, 100)
-    robot.callback_command(msg, robotname)
-
 def clamp(value, minVal, maxVal):
     return max(minVal, min(maxVal, value)) 
     
 if __name__ == '__main__':
-    global serial, robot
-    global invertLeft, invertRight, minThrottle, maxThrottle
     rospy.init_node('teleop')
 
-    # add default value
     robotname = 'VelociRoACH1'
-    rospy.Subscriber('cmd_vel',
-                     geometry_msgs.msg.Twist,
-                     handle_command,
-                     robotname)
-    rospy.on_shutdown(stopRobot)
 
     device = rospy.get_param('~device', '/dev/ttySAC1')
-    invertLeft = rospy.get_param('~invertLeft', True)
-    invertRight = rospy.get_param('~invertRight', True)
-    minThrottle = rospy.get_param('~minThrottle', -4000)
-    maxThrottle = rospy.get_param('~maxThrottle', 4000)
-
+    print "device=" + str(device)
 
     try:
         print 'initializing robot'
@@ -92,4 +63,13 @@ if __name__ == '__main__':
         robot.start()
     except rospy.ROSInterruptException:
         pass
+
+        # add default value
+
+    rospy.Subscriber('cmd_vel',
+                     geometry_msgs.msg.Twist,
+                     robot.callback_command,
+                     robotname)
+
+    rospy.on_shutdown(stopRobot)
     rospy.spin()
