@@ -60,6 +60,7 @@ if __name__ == '__main__':
         serial = imageproc.serial_comm.SerialComm(device)
         serial.start()
         robot = imageproc.run_robot_class.RunRobot(robotname, serial)
+        print 'starting robot'
         robot.start()
     except rospy.ROSInterruptException:
         pass
@@ -69,7 +70,8 @@ if __name__ == '__main__':
     rospy.Subscriber('cmd_vel',
                      geometry_msgs.msg.Twist,
                      robot.callback_command,
-                     robotname)
-
+                     robotname,
+                     1)  # queue size 1
+    
     rospy.on_shutdown(stopRobot)
     rospy.spin()

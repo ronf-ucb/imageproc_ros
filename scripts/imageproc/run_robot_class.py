@@ -82,7 +82,7 @@ class RunRobot(threading.Thread):
         print "invertLeft=" + str(self.invertLeft)
         print "invertRight=" + str(self.invertRight)
         print "minThrottle=" + str(self.minThrottle)
-        print "maxThrottle=" + str(self.invertLeft)
+        print "maxThrottle=" + str(self.maxThrottle)
         print "linearGain=" + str(self.linearGain)
         print "angularGain=" + str(self.angularGain)
 
@@ -90,6 +90,7 @@ class RunRobot(threading.Thread):
     def callback_command(self, msg, robotname):
         self.linear_command = msg.linear.x
         self.angular_command = msg.angular.z
+        print 'robot.callback_command'
 
     def callback_runtime(self, msg):
         self.runtime = msg.data + time.time()  # time in milliseconds
@@ -103,7 +104,7 @@ class RunRobot(threading.Thread):
         thrust = [throttle0, throttle1, duration]
         self.comm.send_command(0, command.SET_THRUST_OPEN_LOOP, pack("3h",*thrust))
 #        self.comm.send_command(0, command.SET_THRUST, pack("3h",*thrust))        
-        #print "cmdSetThrust " + str(thrust)
+        print "cmdSetThrust " + str(thrust)
 
     # run legs in closed loop, with different number of left/right steps
     def setThrustClosedLoop(self, leftTime,rightTime):
@@ -187,7 +188,8 @@ class RunRobot(threading.Thread):
             right_throttle = self.linearGain * self.linear_command + self.angularGain * self.angular_command
 
             self.setThrust(left_throttle, right_throttle, 100)
-            time.sleep(.01)
+           # time.sleep(.01)
+            time.sleep(5)
 
             '''
             vel = self.linear_command

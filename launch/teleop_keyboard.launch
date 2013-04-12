@@ -1,9 +1,32 @@
 <launch>
-    <node name="turner_teleop" pkg="imageproc_ros" type="teleop.py">
+    <node name="turner_teleop" 
+	pkg="imageproc_ros" 
+	type="teleop.py"
+    	launch-prefix="nice -n 15 xterm -title 'Teleop' -e"
+    >
         <rosparam param="device">/dev/ttySAC1 </rosparam>
+        <rosparam param="invertLeft">True</rosparam>
+        <rosparam param="invertRight">True</rosparam>
+        <rosparam param="minThrottle">-1000</rosparam>
+        <rosparam param="maxThrottle">1000</rosparam>
+        <rosparam param="linearGain">2400</rosparam>
+        <rosparam param="angularGain">2400</rosparam>
     </node>
-    <node name="turtlebot_teleop_key" pkg="imageproc_ros" type="twist_keyboard.py" output="screen">
+
+    <node name="twist_key" 
+    	  pkg="imageproc_ros" 
+	  type="twist_keyboard.py"
+	launch-prefix="nice -n 15 xterm -title 'TwistKey' -e"
+	 output="screen">
     </node>
+
+<!--  dynamic graph of system -->
+  <node pkg="rqt_graph"
+        type="rqt_graph"
+	name="RosGraph" 
+	launch-prefix="nice -n 15"
+	>
+  </node>
 
 </launch>
 
