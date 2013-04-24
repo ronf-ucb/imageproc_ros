@@ -54,11 +54,30 @@ class RunRobot:
     runtime = 0.0
     robot_onoff = False
 
-    def __init__(self, name):
+    def __init__(self, name,comm):
         self.robotname = name
+        self.comm = comm
+        self.dataFileName = 'Data/imudata.txt'
+        self.count = 0       # keep track of packet tries
+        self.throttle = [0,0]
         print "Robot = ", self.robotname
         self.pub_state = rospy.Publisher('robotState', sensor_msgs.msg.JointState)
         self.pub_gyro = rospy.Publisher('robotGyro', sensor_msgs.msg.Imu)
+
+        # initialize any needed robot parameters
+    def init(self):
+        print 'Keyboard test for IP2.5c on linaro April 2013\n'
+       
+        self.comm.send_command(0, command.WHO_AM_I, "Robot Echo")
+        time.sleep(0.5)
+        setGain()
+        time.sleep(0.5)  # wait for whoami before sending next command
+        setVelProfile()
+        self.comm.send_command(0, command.ZERO_POS,  "Zero motor")
+        print 'RunRobot.init: read motorpos and zero'
+        print "RunRobot.init: Done Initializing"
+        self.robot_ready = True
+        return True
 
 # store published command locally to be accessed by velocity sending
     def callback_command(self, msg, robotname):
@@ -71,13 +90,13 @@ class RunRobot:
 
     def setThrust(self, throttle0, throttle1, duration):
         thrust = [throttle0, throttle1, duration]
-        xb_send(0, command.SET_THRUST, pack("3h",*thrust))
-        print "cmdSetThrust " + str(thrust)
+        self.comm.send_command(0, command.SET_THRUST, pack("3h",*thrust))
+        print "RunRobot.setThrust:setThrust " + str(thrust)
 
     # run legs in closed loop, with different number of left/right steps
     def setThrustClosedLoop(self, leftTime,rightTime):
         thrust = [throttle[0], leftTime, throttle[1], rightTime, 0]
-        xb_send(0, command.SET_THRUST_CLOSED_LOOP, pack('5h',*thrust))
+        self.comm.send_command(0, command.SET_THRUST_CLOSED_LOOP, pack('5h',*thrust))
     #    print "Throttle[0,1] = ",throttle[0],throttle[1],\
     #          "left", leftTime,"right", rightTime
 
@@ -94,7 +113,7 @@ class RunRobot:
         while shared.pkts == 0:
             print "Retry after 0.1 seconds. Got only %d packets" %shared.pkts
             rospy.logerr('getPIDdata: retry GET_PID_TELEMETRY')
-            xb_send(0, command.GET_PID_TELEMETRY, pack('h',0))
+            self.comm.send_command(0, command.GET_PID_TELEMETRY, pack('h',0))
             time.sleep(0.1)
             count = count + 1
             if count > 5:

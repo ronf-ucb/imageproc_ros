@@ -32,6 +32,7 @@
 # R. Fearing Feb. 2013  basic commands sent out to robot for initial
 # closed loop control through ROS
 # Feb. 28, 2013  changed to using Robot 
+# Apr. 24, 2013  added serial interface from ajc
 
 import roslib
 roslib.load_manifest('Turner25')
@@ -41,15 +42,38 @@ import sensor_msgs.msg
 import std_msgs.msg
 from imageproc.robot_init import robot_init
 import imageproc.shared
+import imageproc.serial_comm
 import imageproc.run_robot_class
+
+
+def stopRobot():
+    serial.stop()
+    Robot.stop()
 
 
 if __name__ == '__main__':
     robotname = 'VelociRoACH1'
-    Robot = imageproc.run_robot_class.RunRobot(robotname)
-    Robot.robot_ready = False
-    Robot.runtime = 0.0    # initial run time set to 0 sec
     rospy.init_node('Turner25')
+    
+    device = rospy.get_param('~device', '/dev/ttySAC1')
+    # device = '/dev/ttySAC1' # DEBUG
+    print "device=" + str(device)
+
+    try:
+        print 'initializing robot'
+        serial = imageproc.serial_comm.SerialComm(device)
+        serial.start()
+        # import pdb; pdb.set_trace()  # if needed to trace during debug
+        Robot = imageproc.run_robot_class.RunRobot(robotname, serial)
+        Robot.robot_ready = False
+        Robot.runtime = 0.0    # initial run time set to 0 sec
+        Robot.robot_ready= Robot.init()   # talk to IP, initialize control, etc
+        print 'starting robot'
+        Robot.start()       # starts background process (from threading library)
+    except rospy.ROSInterruptException:
+        pass
+    
+   
 # topic for commanded leg velocities from controller node
     rospy.Subscriber('velCmd',
                      turtlesim.msg.Velocity,
@@ -61,11 +85,7 @@ if __name__ == '__main__':
                      std_msgs.msg.Float32,
                      Robot.callback_runtime)
 
-    try:
-        print 'initializing robot'
-        Robot.robot_ready = robot_init()
-        print "robot_ready = ", Robot.robot_ready
-        Robot.run()       # run robot using callback messages
-    except rospy.ROSInterruptException:
-        pass
+    print "robot_ready = ", Robot.robot_ready
+    Robot.run()       # run robot using callback messages
+    rospy.on_shutdown(stopRobot)
     rospy.spin()
