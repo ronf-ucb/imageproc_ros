@@ -40,7 +40,7 @@ import rospy
 import turtlesim.msg
 import sensor_msgs.msg
 import std_msgs.msg
-from imageproc.robot_init import robot_init
+# from imageproc.robot_init import robot_init
 import imageproc.shared
 import imageproc.serial_comm
 import imageproc.run_robot_class
