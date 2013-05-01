@@ -38,6 +38,7 @@ from robot_init import *
 # from turner_commands import publish_data
 # import turner_commands.publish_data
 import sensor_msgs.msg
+import shared
 PI = 3.1415926536
 MPOS_SCALE = 2.0 * PI/ (2**16)
 
@@ -68,16 +69,49 @@ class RunRobot:
     def init(self):
         print 'Keyboard test for IP2.5c on linaro April 2013\n'
        
-        self.comm.send_command(0, command.WHO_AM_I, "Robot Echo")
+        while(1):
+            self.comm.send_command(0, command.WHO_AM_I, "0123456789ABCDEF")
+            print 'run_robot test loop. next who am i:'
+            x = raw_input()
         time.sleep(0.5)
-        setGain()
+        self.setGain()
         time.sleep(0.5)  # wait for whoami before sending next command
-        setVelProfile()
+        self.setVelProfile()
         self.comm.send_command(0, command.ZERO_POS,  "Zero motor")
         print 'RunRobot.init: read motorpos and zero'
         print "RunRobot.init: Done Initializing"
         self.robot_ready = True
         return True
+
+# set robot control gains
+    def setGain(self):
+        count = 0
+        while not(shared.motor_gains_set):
+            print "Setting motor gains. Packet:",count
+            count = count + 1
+            self.comm.send_command(0, command.SET_PID_GAINS, pack('10h',*motorgains))
+            time.sleep(2)
+            if count > 20:
+                print "count exceeded. Exit."
+                print "Closing serial"
+                self.comm.stop()
+                print "Exiting..."
+                sys.exit(0)
+
+# set velocity profile
+# invert profile for motor 0 for VelociRoACH kinematics
+    def setVelProfile(self):
+        global intervals, vel
+        print "Sending velocity profile"
+        print "set points [encoder values]", delta
+        print "intervals (ms)",intervals
+        print "velocities (delta per ms)",vel
+        temp0 = intervals + map(invert,delta) + map(invert,vel) # invert 0
+        temp1 = intervals+delta+vel
+        temp = temp0 + temp1  # left = right
+        self.comm.send_command(0, command.SET_VEL_PROFILE, pack('24h',*temp))
+        time.sleep(1)
+
 
 # store published command locally to be accessed by velocity sending
     def callback_command(self, msg, robotname):

@@ -71,16 +71,16 @@ delta = [0x4000,0x4000,0x4000,0x4000]  # adds up to 65536 (2 pi)
 intervals = [50, 50, 50, 50]  # total 200 ms
 vel = [327, 327,327,327]  # = delta/interval
 
-ser = serial.Serial(shared.BS_COMPORT, shared.BS_BAUDRATE,timeout=3, rtscts=0)
-xb = XBee(ser, callback = xbee_received)
+# ser = serial.Serial(shared.BS_COMPORT, shared.BS_BAUDRATE,timeout=3, rtscts=0)
+# xb = XBee(ser, callback = xbee_received)
 
-def xb_send(status, type, data):
-    payload = chr(status) + chr(type) + ''.join(data)
-    xb.tx(dest_addr = DEST_ADDR, data = payload)
-
-def resetRobot():
-    xb_send(0, command.SOFTWARE_RESET, pack('h',0))
-
+##def xb_send(status, type, data):
+##    payload = chr(status) + chr(type) + ''.join(data)
+##    xb.tx(dest_addr = DEST_ADDR, data = payload)
+##
+##def resetRobot():
+##    xb_send(0, command.SOFTWARE_RESET, pack('h',0))
+##
 
         
 #set velocity profile
@@ -102,24 +102,24 @@ def invert(x):
     return (-x)
 
 # set robot control gains
-def setGain():
-    count = 0
-    while not(shared.motor_gains_set):
-        print "Setting motor gains. Packet:",count
-        count = count + 1
-        xb_send(0, command.SET_PID_GAINS, pack('10h',*motorgains))
-        time.sleep(2)
-        if count > 20:
-            print "count exceeded. Exit."
-            print "Halting xb"
-            xb.halt()
-            print "Closing serial"
-            ser.close()
-            print "Exiting..."
-            sys.exit(0)
-
-
-            
+##def setGain():
+##    count = 0
+##    while not(shared.motor_gains_set):
+##        print "Setting motor gains. Packet:",count
+##        count = count + 1
+##        xb_send(0, command.SET_PID_GAINS, pack('10h',*motorgains))
+##        time.sleep(2)
+##        if count > 20:
+##            print "count exceeded. Exit."
+##            print "Halting xb"
+##            xb.halt()
+##            print "Closing serial"
+##            ser.close()
+##            print "Exiting..."
+##            sys.exit(0)
+##
+##
+##            
 
 
 

@@ -76,7 +76,7 @@ class SerialComm(comm.Comm):
         elif self.SerialCommState is SerialCommState.Data:
             if self.lengthToGo > 0:
                 self.data = self.data + self.ser.read(1)
-                #print self.data
+                print self.data
                 self.lengthToGo = self.lengthToGo - 1
             else:
                 self.SerialCommState = SerialCommState.Checksum
