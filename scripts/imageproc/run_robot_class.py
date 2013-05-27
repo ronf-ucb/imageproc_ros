@@ -38,6 +38,8 @@ from robot_init import *
 # from turner_commands import publish_data
 # import turner_commands.publish_data
 import sensor_msgs.msg
+import pdb # python debugger
+
 import shared
 PI = 3.1415926536
 MPOS_SCALE = 2.0 * PI/ (2**16)
@@ -68,15 +70,18 @@ class RunRobot:
         # initialize any needed robot parameters
     def init(self):
         print 'Keyboard test for IP2.5c on linaro April 2013\n'
-       
+        self.comm.send_command(0, command.WHO_AM_I, "0123456789ABCDEF")
         while(1):
             self.comm.send_command(0, command.WHO_AM_I, "0123456789ABCDEF")
             print 'run_robot test loop. next who am i:'
-            x = raw_input()
-        time.sleep(0.5)
+#            x = raw_input()
+            time.sleep(10.0)
+#        pdb.set_trace()  # if needed to trace during debug
+        time.sleep(1.0)
         self.setGain()
         time.sleep(0.5)  # wait for whoami before sending next command
         self.setVelProfile()
+        time.sleep(0.5)
         self.comm.send_command(0, command.ZERO_POS,  "Zero motor")
         print 'RunRobot.init: read motorpos and zero'
         print "RunRobot.init: Done Initializing"
@@ -91,6 +96,8 @@ class RunRobot:
             count = count + 1
             self.comm.send_command(0, command.SET_PID_GAINS, pack('10h',*motorgains))
             time.sleep(2)
+            print 'set gain loop. continue:'
+            x = raw_input()
             if count > 20:
                 print "count exceeded. Exit."
                 print "Closing serial"

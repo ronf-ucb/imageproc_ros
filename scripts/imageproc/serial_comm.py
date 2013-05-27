@@ -19,7 +19,7 @@ class SerialComm(comm.Comm):
 
     running = False
 
-    SerialCommState = SerialCommState.Length
+    SerialCommState = SerialCommState.Length  # get length byte
     lengthToGo = 0
     data = ""
     lengthbyte = 0
@@ -31,6 +31,7 @@ class SerialComm(comm.Comm):
             port=port,
             baudrate=1000000)
         self.ser.open()
+        self.ser.flushInput()   # discard input from previous runs
         print 'Serial Open:', self.ser.isOpen()
         '''
         self.ser.close()
@@ -39,7 +40,7 @@ class SerialComm(comm.Comm):
 
     def run(self):
         self.running = True
-        # import pdb; pdb.set_trace()   # DEBUG BREAK
+        import pdb; pdb.set_trace()   # DEBUG BREAK
         print 'starting polling'
         while self.running:
             self.poll()
@@ -59,14 +60,14 @@ class SerialComm(comm.Comm):
         self.ser.write(data)
 
     def poll(self):
-        # print "polling"
+        print "polling"
         if self.SerialCommState is SerialCommState.Length:
             self.lengthByte = ord(self.ser.read(1))
             self.SerialCommState = SerialCommState.ChLength
-            print "length=" + str(self.lengthByte)
+            print "length=" + str(self.lengthByte),
         elif self.SerialCommState is SerialCommState.ChLength:
             self.lengthCheck = ord(self.ser.read(1))
-            print self.lengthCheck
+            print ' length check =', self.lengthCheck
             if self.lengthByte + self.lengthCheck is 0xff:
                 self.SerialCommState = SerialCommState.Data
                 self.lengthToGo = self.lengthByte - 3
@@ -76,12 +77,13 @@ class SerialComm(comm.Comm):
         elif self.SerialCommState is SerialCommState.Data:
             if self.lengthToGo > 0:
                 self.data = self.data + self.ser.read(1)
-                print self.data
+                # print self.data
                 self.lengthToGo = self.lengthToGo - 1
             else:
                 self.SerialCommState = SerialCommState.Checksum
         elif self.SerialCommState is SerialCommState.Checksum:
             checksum = ord(self.ser.read(1))
+            self.SerialCommState = SerialCommState.Length # ready for next packet
             sum = 0xff
             for c in self.data:
                 sum = sum + ord(c)
@@ -92,11 +94,16 @@ class SerialComm(comm.Comm):
                 print "command type=" + str(ord(self.data[1]))
                 serial_received(self.data)  # process serial packet
                 # receiveddata = struct.unpack('16h', self.data)
+                print 'checksum =', checksum, ' sum =', sum
+                self.data = ""        
+            else:
+                print 'checksum =', checksum, ' sum =', sum   
+                self.data = ""             
+    
 ##                for i in range(2,len(receiveddata)):
 ##                    print "data[" + str(i) + "]=" + str(ord(receiveddata[i]))
-##                self.data = ""
-##            self.SerialCommState = SerialCommState.Length
 
+        
     def form_payload(self, status, type, data):
         payload = chr(status) + chr(type) + ''.join(data)
         return self.serial_payload(payload)
