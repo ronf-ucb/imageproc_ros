@@ -4,12 +4,23 @@
 import serial
 
 port='/dev/ttySAC1'
+# add timeout in case serial not working
 
+# ipSerial = serial.Serial(port=port, baudrate=1000000, timeout=5.0)
 ipSerial = serial.Serial(port=port, baudrate=1000000)
 
 print 'Serial Open:', ipSerial.isOpen()
+# TRY WRITING
+ipSerial.write("01234567890")
 ipSerial.flushInput()   # clear input buffer if left over data
-count = ord(ipSerial.read(1))
+byte_read = ipSerial.read(1)
+if byte_read != "":
+#    count = ord(ipSerial.read(1))
+    count = ord(byte_read)
+else:
+    print "read timeout"
+    exit
+ 
 print 'count=', hex(count)   # byte count
 x = ord(ipSerial.read(1))
 print 'count parity=',hex(x)    # ~ byte count

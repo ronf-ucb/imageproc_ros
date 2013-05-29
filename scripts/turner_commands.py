@@ -68,8 +68,10 @@ if __name__ == '__main__':
         Robot.robot_ready = False
         Robot.runtime = 0.0    # initial run time set to 0 sec
         Robot.robot_ready= Robot.init()   # talk to IP, initialize control, etc
-        print 'starting robot'
-        Robot.start()       # starts background process (from threading library)
+        print "Robot.init done."
+        # could use thread for Robot.run(), or just start directly
+##        print 'starting robot'
+##        Robot.start()       # starts background process (from threading library)
     except rospy.ROSInterruptException:
         pass
     

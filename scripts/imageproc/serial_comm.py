@@ -40,7 +40,7 @@ class SerialComm(comm.Comm):
 
     def run(self):
         self.running = True
-        import pdb; pdb.set_trace()   # DEBUG BREAK
+        # import pdb; pdb.set_trace()   # DEBUG BREAK
         print 'starting polling'
         while self.running:
             self.poll()
@@ -59,21 +59,23 @@ class SerialComm(comm.Comm):
         data = self.form_payload(status, type, data)
         self.ser.write(data)
 
+# should wait until gets consecutive complementary bytes
+# should also go back to wait state if exceeds max packet length or has other error
     def poll(self):
-        print "polling"
+        # print "polling"
         if self.SerialCommState is SerialCommState.Length:
             self.lengthByte = ord(self.ser.read(1))
             self.SerialCommState = SerialCommState.ChLength
-            print "length=" + str(self.lengthByte),
+            # print "length=" + hex(self.lengthByte),
         elif self.SerialCommState is SerialCommState.ChLength:
             self.lengthCheck = ord(self.ser.read(1))
-            print ' length check =', self.lengthCheck
+            # print ' length check =', hex(self.lengthCheck),
             if self.lengthByte + self.lengthCheck is 0xff:
                 self.SerialCommState = SerialCommState.Data
                 self.lengthToGo = self.lengthByte - 3
             else:
                 self.SerialCommState = SerialCommState.ChLength
-                self.lengthByte = self.lengthCheck
+                self.lengthByte = self.lengthCheck # check if last byte received is length byte
         elif self.SerialCommState is SerialCommState.Data:
             if self.lengthToGo > 0:
                 self.data = self.data + self.ser.read(1)
@@ -83,22 +85,25 @@ class SerialComm(comm.Comm):
                 self.SerialCommState = SerialCommState.Checksum
         elif self.SerialCommState is SerialCommState.Checksum:
             checksum = ord(self.ser.read(1))
-            self.SerialCommState = SerialCommState.Length # ready for next packet
             sum = 0xff
             for c in self.data:
                 sum = sum + ord(c)
             sum = sum & 0xff
             if checksum is sum:
                 #print "read success=" + binascii.hexlify(self.data)
-                print "command status=" + str(ord(self.data[0]))
-                print "command type=" + str(ord(self.data[1]))
+                # print "command status=" + str(ord(self.data[0])),
+                # print "command type=" + hex(ord(self.data[1]))
                 serial_received(self.data)  # process serial packet
                 # receiveddata = struct.unpack('16h', self.data)
-                print 'checksum =', checksum, ' sum =', sum
+                # print 'Checksum OK. checksum =', hex(checksum), ' sum =', hex(sum)
                 self.data = ""        
+                self.SerialCommState = SerialCommState.Length # ready for next packet
             else:
-                print 'checksum =', checksum, ' sum =', sum   
-                self.data = ""             
+                print 'Checksum error. checksum =', hex(checksum), ' sum =', hex(sum)  
+                self.data = ""
+                self.lengthByte = checksum # check if last byte received is length byte
+                self.SerialCommState = SerialCommState.ChLength # ready for next packet
+
     
 ##                for i in range(2,len(receiveddata)):
 ##                    print "data[" + str(i) + "]=" + str(ord(receiveddata[i]))

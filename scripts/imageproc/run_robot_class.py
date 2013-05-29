@@ -71,21 +71,24 @@ class RunRobot:
     def init(self):
         print 'Keyboard test for IP2.5c on linaro April 2013\n'
         self.comm.send_command(0, command.WHO_AM_I, "0123456789ABCDEF")
-        while(1):
-            self.comm.send_command(0, command.WHO_AM_I, "0123456789ABCDEF")
-            print 'run_robot test loop. next who am i:'
-#            x = raw_input()
-            time.sleep(10.0)
-#        pdb.set_trace()  # if needed to trace during debug
+##        while(1):
+##            self.comm.send_command(0, command.WHO_AM_I, "0123456789ABCDEF")
+##            print 'run_robot test loop. next who am i:'
+###            x = raw_input()
+##            time.sleep(10.0)
+###        pdb.set_trace()  # if needed to trace during debug
         time.sleep(1.0)
         self.setGain()
         time.sleep(0.5)  # wait for whoami before sending next command
         self.setVelProfile()
         time.sleep(0.5)
         self.comm.send_command(0, command.ZERO_POS,  "Zero motor")
+        time.sleep(0.5)
         print 'RunRobot.init: read motorpos and zero'
         print "RunRobot.init: Done Initializing"
         self.robot_ready = True
+        print 'init done. <cr> to continue:'
+        x = raw_input()
         return True
 
 # set robot control gains
@@ -96,8 +99,8 @@ class RunRobot:
             count = count + 1
             self.comm.send_command(0, command.SET_PID_GAINS, pack('10h',*motorgains))
             time.sleep(2)
-            print 'set gain loop. continue:'
-            x = raw_input()
+            # print 'set gain loop. continue:'
+            # x = raw_input()
             if count > 20:
                 print "count exceeded. Exit."
                 print "Closing serial"
@@ -149,7 +152,7 @@ class RunRobot:
         dummy_data = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
         # data format '=LLll'+13*'h' 
         shared.imudata = [] #reset stored data
-        xb_send(0, command.GET_PID_TELEMETRY, pack('h',0))
+        self.comm.send_command(0, command.GET_PID_TELEMETRY, pack('h',0))
         time.sleep(0.1)   # 10 Hz, faster could choke Basestation
         while shared.pkts == 0:
             print "Retry after 0.1 seconds. Got only %d packets" %shared.pkts
@@ -207,6 +210,7 @@ class RunRobot:
     # V_L = V_n - \omega / 2
     # initial calculation assuming no slip - times in milliseconds
     def run(self):
+        pdb.set_trace()  # if needed to trace during debug
         while True:
             vel = self.linear_command
             turn_rate = self.angular_command
