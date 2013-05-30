@@ -2,6 +2,7 @@ from lib import command
 from struct import pack,unpack
 
 import shared
+import pdb
 
 def serial_received(rf_data):
     #(src_addr, ) = unpack('H', packet.get('source_addr'))
@@ -11,7 +12,7 @@ def serial_received(rf_data):
     status = ord(rf_data[0])
     type = ord(rf_data[1])
     data = rf_data[2:]
-    print 'callback cmd:', hex(type)
+    # print 'callback cmd:', hex(type)
     if (type == command.GET_IMU_DATA):
         datum = unpack('l6h', data)
         #datum = unpack('l3f', data)
@@ -70,6 +71,7 @@ def serial_received(rf_data):
             for i in range(pp):
                 shared.imudata.append(datum[4*i:4*(i+1)] )
     elif (type == command.SPECIAL_TELEMETRY):
+         # pdb.set_trace()
         shared.pkts = shared.pkts + 1
         # first word is packet #
         # updated angle position to signed long (l) for IP2.5
@@ -77,14 +79,14 @@ def serial_received(rf_data):
         print ".",
         pattern = '=LLll'+13*'h'
         datum = unpack(pattern, data)
-        telem_index = datum[0]
- # diagnostic
-#        if (shared.pkts <= 30):
-#            print "datum =", datum
- #           print "rssi= ", ord(packet.get('rssi'))
+        shared.telem_index = datum[0]
+# diagnostic
+#      if (shared.pkts <= 10):
+#           print "datum =", datum
+#           print "rssi= ", ord(packet.get('rssi'))
         if (datum[0] != -1):
-            if (shared.pkts != telem_index):
-                print str(shared.pkts) + "<>" + str(telem_index),
+            if (shared.pkts != shared.telem_index):
+                print str(shared.pkts) + "!=" + str(shared.telem_index),
             shared.imudata.append(datum)  # save data anyway
   
     else:

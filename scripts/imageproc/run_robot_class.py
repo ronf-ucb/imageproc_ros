@@ -85,6 +85,9 @@ class RunRobot:
         self.comm.send_command(0, command.ZERO_POS,  "Zero motor")
         time.sleep(0.5)
         print 'RunRobot.init: read motorpos and zero'
+        self.getPIDdata()   # read initial state from robot, and also first packet number
+        time.sleep(0.1) # give time for serial call back
+        shared.pkts = shared.telem_index
         print "RunRobot.init: Done Initializing"
         self.robot_ready = True
         print 'init done. <cr> to continue:'
@@ -147,14 +150,15 @@ class RunRobot:
 
     # get one packet of PID data from robot
     def getPIDdata(self):
+ #       pdb.set_trace()
         count = 0
-        shared.pkts = 0   # reset packet count
+        old_count = shared.pkts # 
         dummy_data = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
         # data format '=LLll'+13*'h' 
         shared.imudata = [] #reset stored data
         self.comm.send_command(0, command.GET_PID_TELEMETRY, pack('h',0))
         time.sleep(0.1)   # 10 Hz, faster could choke Basestation
-        while shared.pkts == 0:
+        while shared.pkts == old_count:
             print "Retry after 0.1 seconds. Got only %d packets" %shared.pkts
             rospy.logerr('getPIDdata: retry GET_PID_TELEMETRY')
             self.comm.send_command(0, command.GET_PID_TELEMETRY, pack('h',0))
@@ -210,7 +214,7 @@ class RunRobot:
     # V_L = V_n - \omega / 2
     # initial calculation assuming no slip - times in milliseconds
     def run(self):
-        pdb.set_trace()  # if needed to trace during debug
+        # pdb.set_trace()  # if needed to trace during debug
         while True:
             vel = self.linear_command
             turn_rate = self.angular_command
