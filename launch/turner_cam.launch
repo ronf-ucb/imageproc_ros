@@ -37,6 +37,7 @@
     <!--  start with include, so can debug w/o restarting everything -->
     <include file="$(find Turner25)/launch/sendcommand.launch" />
     <include file="$(find Turner25)/launch/control.launch" />	
+    <include file="$(find argus_perception)/launch/camera320x240.launch" />	
 
  <!--   *** not used *** 
  <include file="$(find Turner25)/launch/optitrack_sim.launch" />

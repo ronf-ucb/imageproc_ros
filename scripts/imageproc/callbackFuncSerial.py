@@ -76,7 +76,7 @@ def serial_received(rf_data):
         # first word is packet #
         # updated angle position to signed long (l) for IP2.5
  #       print "pkt ",shared.pkts,
-        print ".",
+        # print ".",
         pattern = '=LLll'+13*'h'
         datum = unpack(pattern, data)
         shared.telem_index = datum[0]

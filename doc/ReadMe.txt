@@ -24,7 +24,7 @@ edit control.launch to use:
 5. leg cycle is set to 100 ms in robot_init.py
 
 6. to create bagfile of most data
-   rosrecord -a 
+   rosbag record -a 
 
 7. Convert bagfile to textfile (./Data/telemdata.txt)
    python turnerbag2data bagfile.bag

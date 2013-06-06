@@ -3,7 +3,7 @@
     <node pkg="Turner25" 
     	  name="SendCommandRobot" 
 	  type="turner_commands.py"
-	  launch-prefix="nice -n 15  xterm -bg yellow -fg black -geometry 64x16+200+500 -title 'SendCommandRobot Debug Info' -e"
+	  launch-prefix="nice -n 15  xterm -bg yellow -fg black -geometry 64x16+100+500 -title 'SendCommandRobot Debug Info' -e"
 	  >
 	<rosparam param="device">/dev/ttySAC1 </rosparam>
         <rosparam param="invertLeft">True</rosparam>
@@ -14,25 +14,26 @@
 <!--  ***** set  robot run time  *************      -->
     <node pkg="rostopic" name="RunTimeSet" type="rostopic" 
           args="pub -r 0.1 RunTime std_msgs/Float32 10.0" 
-	  launch-prefix="nice -n 15 xterm -bg white -fg purple -geometry 64x8+175+475 -title 'rostopic RunTime' -e"
-	  >
+	>
     	<remap from="TurnTurtle/pose" to="turtle1/pose"/>
     </node>
+
+<!-- launch-prefix="nice -n 15 xterm -bg white -fg purple -geometry 64x8+175+475 -title 'rostopic RunTime' -e" **** don't need to monitor RunTime... -->
 
 
  <!-- **************** monitor robot state output ************** -->
 
-<!-- monitor optitrack/pose -->
+<!-- monitor robot mpos, back emf, pwm -->
     <node pkg="rostopic" name="rostopic_robotState" type="rostopic" 
           args="echo /robotState" 
-	  launch-prefix="nice -n 10 xterm -bg black -fg yellow -geometry 64x16+400+350 -title 'rostopic_4 robotState' -e"
+	  launch-prefix="nice -n 10 xterm -bg black -fg yellow -geometry 64x16+400+50 -title 'rostopic_4 robotState' -e"
 	  >
     </node>
 
-<!-- monitor optitrack/pose -->
+<!-- monitor robot gyro and accelerometer -->
     <node pkg="rostopic" name="rostopic_robotGyro" type="rostopic" 
           args="echo /robotGyro" 
-	  launch-prefix="nice -n 10 xterm -bg black -fg orange -geometry 64x16+450+400 -title 'rostopic_5 robotGyro' -e"
+	  launch-prefix="nice -n 10 xterm -bg black -fg orange -geometry 64x16+450+100 -title 'rostopic_5 robotGyro' -e"
 	  >
     </node>
     
