@@ -124,7 +124,7 @@ def write_topic(topic,msg,t):
 def save_data():
     writeFileHeader(dataFileName)     
     fileout = open(dataFileName, 'a')
-    np.savetxt(fileout , np.array(telemdata), '%6.3f', delimiter = ',')
+    np.savetxt(fileout , np.array(telemdata), '%7.4f', delimiter = ',')
     fileout.close()
     print "data saved to ",dataFileName
 

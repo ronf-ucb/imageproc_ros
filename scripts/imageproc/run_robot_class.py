@@ -44,7 +44,7 @@ import pdb # python debugger
 import shared
 PI = 3.1415926536
 MPOS_SCALE = 2.0 * PI/ (2**16)
-PKT_DELAY = 0.06666   # delay between packets to avoid overflow of buffers
+PKT_DELAY = 0.05   # delay between packets to avoid overflow of buffers
 
 smsg = sensor_msgs.msg.JointState()
 imsg = sensor_msgs.msg.Imu()    # IMU message
@@ -151,9 +151,11 @@ class RunRobot:
 
 
     # get one packet of PID data from robot
+    # with python, assume that variable time for call back
     def getPIDdata(self):
  #       pdb.set_trace()
         count = 0
+        got_pkt = False
         shared.pkts = shared.telem_index # last packet number received
         old_count = shared.pkts
         dummy_data = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
@@ -161,20 +163,33 @@ class RunRobot:
         shared.imudata = [] #reset stored data
         self.comm.send_command(0, command.GET_PID_TELEMETRY, pack('h',0))
         time.sleep(PKT_DELAY)   # 30 Hz, to go with camera frame rate
-        while shared.pkts == old_count:
+        
+        if shared.pkts != old_count:
+            self.data = shared.imudata[0]  # convert string list to numbers
+        else:  
             print "Retry after %f seconds. Got only %d packets" %(PKT_DELAY, shared.pkts)
             rospy.logerr('getPIDdata: retry GET_PID_TELEMETRY')
-            self.comm.send_command(0, command.GET_PID_TELEMETRY, pack('h',0))
-            time.sleep(0.1)
-            count = count + 1
-            # pdb.set_trace()  # if needed to trace during debug
-            if count > 5:
-                print 'Killed SendCommand. No return packet.'
-                rospy.logfatal('getPIDdata: no return packet')
-                rospy.signal_shutdown('Killed node. No return packet!')
+            ### try to wait some more, else fail and will resend packet next time
+            while count < 10:
+                time.sleep(PKT_DELAY/5)
+                if shared.pkts != old_count:
+                    got_pkt = True
+                    break
+                count = count +1
+            if got_pkt == True:
+                self.data = shared.imudata[0]  # convert string list to numbers
+            else:
                 shared.imudata.append(dummy_data) # use dummy data
-                break   
-        self.data = shared.imudata[0]  # convert string list to numbers
+                self.data = shared.imudata[0]
+                print "No Return PID Packet!"
+            # self.comm.send_command(0, command.GET_PID_TELEMETRY, pack('h',0))
+##               if count > 5:
+##                print 'Killed SendCommand. No return packet.'
+##                rospy.logfatal('getPIDdata: no return packet')
+##                rospy.signal_shutdown('Killed node. No return packet!')
+##                shared.imudata.append(dummy_data) # use dummy data
+##                break
+   
         self.publish_state(self.data)
 
       #  print 'index =', data[0]

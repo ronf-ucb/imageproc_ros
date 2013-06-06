@@ -72,7 +72,7 @@ def serial_received(rf_data):
                 shared.imudata.append(datum[4*i:4*(i+1)] )
     elif (type == command.SPECIAL_TELEMETRY):
          # pdb.set_trace()
-        shared.pkts = shared.pkts + 1
+        # shared.pkts = shared.pkts + 1  **** update only after success ****
         # first word is packet #
         # updated angle position to signed long (l) for IP2.5
  #       print "pkt ",shared.pkts,
@@ -85,9 +85,10 @@ def serial_received(rf_data):
 #           print "datum =", datum
 #           print "rssi= ", ord(packet.get('rssi'))
         if (datum[0] != -1):
-            if (shared.pkts != shared.telem_index):
-                print str(shared.pkts) + "!=" + str(shared.telem_index),
+            if ((shared.pkts+1) != shared.telem_index):
+                print str(shared.pkts+1) + "!=" + str(shared.telem_index),
             shared.imudata.append(datum)  # save data anyway
+        shared.pkts = shared.pkts + 1   # update on success
   
     else:
         print 'callback unknown cmd:', type

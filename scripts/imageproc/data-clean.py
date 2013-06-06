@@ -19,7 +19,7 @@ r=filedata.next()
 # , AX, AY, AZ, LBEMF, RBEMF, VBatt SteerOut\n')
 row=map(int,r)  # convert string list to numbers
 t0=row[1]  # 
-print (row[1]-t0)/1000,
+print '%7.4f' % (row[1]-t0)/1000,
 print '%6.2f' % angleEncoder(row[2]),
 print '%6.2f' % angleEncoder(row[3]),
 for i in range(4,16):
@@ -27,7 +27,7 @@ for i in range(4,16):
 print ' '
 for r in filedata:
     row=map(int,r)
-    print (row[1]-t0)/1000,
+    print '%7.4f' % (row[1]-t0)/1000,
     # change angles to 2 pi range (so can see a whole cycle better)
     print '%6.2f' % angleEncoder(row[2]),
     print '%6.2f' % angleEncoder(row[3]),

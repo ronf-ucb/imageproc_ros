@@ -40,7 +40,7 @@ for r in filedata:
 
 # time + motor position
     for i in range(1,4):
-        print " %6.3f" % row[i],
+        print " %7.4f" % row[i],
 
 # PWM+gyro+accel data
     for i in range(4,15):
