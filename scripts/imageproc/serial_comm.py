@@ -23,7 +23,7 @@ class SerialComm(comm.Comm):
     SerialCommState = SerialCommState.Length  # get length byte
     lengthToGo = 0
     data = ""
-    lengthbyte = 0
+    lengthByte = 0
     lengthCheck = 0
 
     def __init__(self, port):
