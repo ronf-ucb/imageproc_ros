@@ -149,8 +149,7 @@ class RunRobot:
     #    print "Throttle[0,1] = ",throttle[0],throttle[1],\
     #          "left", leftTime,"right", rightTime
 
-
-    # get one packet of PID data from robot
+# get one packet of PID data from robot
     # with python, assume that variable time for call back
     def getPIDdata(self):
  #       pdb.set_trace()
@@ -161,15 +160,15 @@ class RunRobot:
         dummy_data = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
         # data format '=LLll'+13*'h' 
         shared.imudata = [] #reset stored data
+        time1 = rospy.get_time()
         self.comm.send_command(0, command.GET_PID_TELEMETRY, pack('h',0))
+        time2 = rospy.get_time()
         time.sleep(PKT_DELAY)   # 30 Hz, to go with camera frame rate
-        
+        time3 = rospy.get_time()
         if shared.pkts != old_count:
             self.data = shared.imudata[0]  # convert string list to numbers
         else:  
-            print "Retry after %f seconds. Got only %d packets" %(PKT_DELAY, shared.pkts)
-            rospy.logerr('getPIDdata: retry GET_PID_TELEMETRY')
-            ### try to wait some more, else fail and will resend packet next time
+                 ### try to wait some more, else fail and will resend packet next time
             while count < 10:
                 time.sleep(PKT_DELAY/5)
                 if shared.pkts != old_count:
@@ -182,6 +181,49 @@ class RunRobot:
                 shared.imudata.append(dummy_data) # use dummy data
                 self.data = shared.imudata[0]
                 print "No Return PID Packet!"
+            print "Retry after %f seconds." %((1 + count) * PKT_DELAY/5),
+            print "Got only %d packets" %(shared.pkts)
+            rospy.logerr('getPIDdata: retry GET_PID_TELEMETRY')
+
+        print "PID times send_command, sleep", str(time2 - time1) + "  " + str(time3 - time2)
+        self.publish_state(self.data)
+
+    # get one packet of PID data from robot
+    # with python, assume that variable time for call back
+    def getPIDdata_old(self):
+ #       pdb.set_trace()
+        count = 0
+        got_pkt = False
+        shared.pkts = shared.telem_index # last packet number received
+        old_count = shared.pkts
+        dummy_data = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        # data format '=LLll'+13*'h' 
+        shared.imudata = [] #reset stored data
+        time1 = rospy.get_time()
+        self.comm.send_command(0, command.GET_PID_TELEMETRY, pack('h',0))
+        time2 = rospy.get_time()
+        time.sleep(PKT_DELAY/5)   # 30 Hz, to go with camera frame rate
+        time3 = rospy.get_time()
+        if shared.pkts != old_count:
+            self.data = shared.imudata[0]  # convert string list to numbers
+        else:  
+                 ### try to wait some more, else fail and will resend packet next time
+            while count < 10:
+                time.sleep(PKT_DELAY/5)
+                if shared.pkts != old_count:
+                    got_pkt = True
+                    break
+                count = count +1
+            if got_pkt == True:
+                self.data = shared.imudata[0]  # convert string list to numbers
+            else:
+                shared.imudata.append(dummy_data) # use dummy data
+                self.data = shared.imudata[0]
+                print "No Return PID Packet!"
+            print "Retry after %f seconds." %((1 + count) * PKT_DELAY/5),
+            print "Got only %d packets" %(shared.pkts)
+            rospy.logerr('getPIDdata: retry GET_PID_TELEMETRY')
+
             # self.comm.send_command(0, command.GET_PID_TELEMETRY, pack('h',0))
 ##               if count > 5:
 ##                print 'Killed SendCommand. No return packet.'
@@ -189,7 +231,7 @@ class RunRobot:
 ##                rospy.signal_shutdown('Killed node. No return packet!')
 ##                shared.imudata.append(dummy_data) # use dummy data
 ##                break
-   
+        print "PID times send_command, sleep", str(time2 - time1) + "  " + str(time3 - time2)
         self.publish_state(self.data)
 
       #  print 'index =', data[0]

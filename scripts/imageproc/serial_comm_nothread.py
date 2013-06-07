@@ -25,9 +25,11 @@ class SerialComm(comm.Comm):
     data = ""
     lengthbyte = 0
     lengthCheck = 0
+    SerialSuccess = False
 
     def __init__(self, port):
-        threading.Thread.__init__(self)
+        # no threading version - call with scheduler
+        # threading.Thread.__init__(self)
         self.ser = serial.Serial(
             port=port,
             baudrate=1000000)
@@ -46,6 +48,11 @@ class SerialComm(comm.Comm):
         while self.running:
             self.poll()
         print 'serial polling finished'
+
+    def do_poll(self):
+            SerialSuccess = False
+            while !SerialSuccess:
+                    self.poll()
 
     def stop(self):
         self.running = False
@@ -96,6 +103,7 @@ class SerialComm(comm.Comm):
                 #print "read success=" + binascii.hexlify(self.data)
                 # print "command status=" + str(ord(self.data[0])),
                 # print "command type=" + hex(ord(self.data[1]))
+                SerialSuccess = True
                 serial_received(self.data)  # process serial packet
                 # receiveddata = struct.unpack('16h', self.data)
                 # print 'Checksum OK. checksum =', hex(checksum), ' sum =', hex(sum)
@@ -104,7 +112,8 @@ class SerialComm(comm.Comm):
                 time2 = rospy.get_time()
                 print "serial poll time", str(time1) + " " + str(time2 - time1) 
             else:
-                print 'Checksum error. checksum =', hex(checksum), ' sum =', hex(sum)  
+                print 'Checksum error. checksum =', hex(checksum), ' sum =', hex(sum)
+                SerialSuccess = False
                 self.data = ""
                 self.lengthByte = checksum # check if last byte received is length byte
                 self.SerialCommState = SerialCommState.ChLength # ready for next packet
