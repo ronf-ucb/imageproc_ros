@@ -11,9 +11,9 @@
     	<remap from="velCmd" to="Velocity"/>
     </node>
 
-<!--  ***** set  robot run time  *************      -->
+<!--  ***** set  robot run time  run frequently to keep alive *************      -->
     <node pkg="rostopic" name="RunTimeSet" type="rostopic" 
-          args="pub -r 0.1 RunTime std_msgs/Float32 10.0" 
+          args="pub -r 0.5 RunTime std_msgs/Float32 2.0" 
 	>
     	<remap from="TurnTurtle/pose" to="turtle1/pose"/>
     </node>

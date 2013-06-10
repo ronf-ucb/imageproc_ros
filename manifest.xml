@@ -9,6 +9,7 @@
   <review status="unreviewed" notes=""/>
   <url>https://github.com/ronf-ucb/turner-ip2.5</url>
   <depend package="std_msgs"/>
+  <depend package="asrl_sensor_msgs"/>
   <depend package="rospy"/>
   <depend package="roscpp"/>
 

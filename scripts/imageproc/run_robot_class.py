@@ -28,6 +28,7 @@
 # Feb. 27: added class to handle publishing data, etc
 # and local state
 # May 2013 - added serial interface
+# June 2013 - switched to asrl comms to use non-blocking interrupt driven Linux IO
 
 
 import sys
@@ -39,6 +40,7 @@ from robot_init import *
 # from turner_commands import publish_data
 # import turner_commands.publish_data
 import sensor_msgs.msg
+# import asrl_sensor_msgs.msg
 import pdb # python debugger
 
 import shared
@@ -48,6 +50,7 @@ PKT_DELAY = 0.05   # delay between packets to avoid overflow of buffers
 
 smsg = sensor_msgs.msg.JointState()
 imsg = sensor_msgs.msg.Imu()    # IMU message
+# sermsg = asrl_sensor_msgs.msg.SerialData()
 
 LEG_VELOCITY = 2.0 # maximum leg m/sec
 
@@ -68,6 +71,7 @@ class RunRobot:
         print "Robot = ", self.robotname
         self.pub_state = rospy.Publisher('robotState', sensor_msgs.msg.JointState)
         self.pub_gyro = rospy.Publisher('robotGyro', sensor_msgs.msg.Imu)
+        # self.pub_serial = rospy.Publisher('/serial_node/serial_send', asrl_sensor_msgs.msg.SerialData)
 
         # initialize any needed robot parameters
     def init(self):
@@ -133,8 +137,12 @@ class RunRobot:
         self.linear_command = msg.linear
         self.angular_command = msg.angular
 
+# time.time() not always updating?? ROS using too many cycles?
     def callback_runtime(self, msg):
-        self.runtime = msg.data + time.time()  # time in milliseconds
+        # self.runtime = msg.data + time.time()  # time in milliseconds
+         # pdb.set_trace()
+        self.runtime = msg.data + rospy.get_time()  # time in float seconds
+        # print 'rospy.get_time() =', rospy.get_time()
         print 'robot runtime =', msg.data, 'end time =', self.runtime, 'packet #', shared.pkts
 
     def setThrust(self, throttle0, throttle1, duration):
@@ -163,6 +171,8 @@ class RunRobot:
         time1 = rospy.get_time()
         self.comm.send_command(0, command.GET_PID_TELEMETRY, pack('h',0))
         time2 = rospy.get_time()
+        # use rospy functions= maybe gives time for operations?
+        # rospy.sleep(PKT_DELAY)
         time.sleep(PKT_DELAY)   # 30 Hz, to go with camera frame rate
         time3 = rospy.get_time()
         if shared.pkts != old_count:
@@ -185,7 +195,7 @@ class RunRobot:
             print "Got only %d packets" %(shared.pkts)
             rospy.logerr('getPIDdata: retry GET_PID_TELEMETRY')
 
-        print "PID times send_command, sleep", str(time2 - time1) + "  " + str(time3 - time2)
+         # print "PID times send_command, sleep", str(time2 - time1) + "  " + str(time3 - time2)
         self.publish_state(self.data)
 
     # get one packet of PID data from robot

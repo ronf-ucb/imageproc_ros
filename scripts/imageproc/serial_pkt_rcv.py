@@ -29,7 +29,8 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 # R. Fearing June 2013
-# send and receive serial messages using asrl_comms
+# receive serial messages using asrl_comms
+# input received serial message, ouput parse command
 
 import roslib
 roslib.load_manifest('serial')
@@ -58,7 +59,7 @@ def handle_serial_receive(msg):
     serial_data = msg.data
     print "serial data =" + msg.data
     print "length of data =" + str(len(serial_data))
-    pdb.set_trace()
+    # pdb.set_trace()
     for i in range(0,len(serial_data)):
         handle_byte(serial_data[i])
 
@@ -89,6 +90,7 @@ def handle_byte(byte):
         else:
             SerialCommState = StateChecksum
     elif SerialCommState == StateChecksum:
+        # pdb.set_trace()
         checksum = byte
         sum = 0xff
         for c in data:
@@ -110,11 +112,7 @@ def handle_byte(byte):
             data = ""
             lengthByte = checksum # check if last byte received is length byte
             SerialCommState = StateChLength # ready for next packet
-
-
-
-
-    
+   
     
 if __name__ == '__main__':
     rospy.init_node('SerialPacket')
@@ -124,6 +122,6 @@ if __name__ == '__main__':
     rospy.Subscriber('/serial_node/serial_receive',
                      asrl_sensor_msgs.msg.SerialData,
                      handle_serial_receive, None, 1)  # queue size 1
-    pub= rospy.Publisher('/serial_node/serial_send', asrl_sensor_msgs.msg.SerialData)
+    # pub= rospy.Publisher('/serial_node/serial_send', asrl_sensor_msgs.msg.SerialData)
     print "serial_parse node initialized"
     rospy.spin()

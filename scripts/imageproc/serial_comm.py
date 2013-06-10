@@ -1,10 +1,13 @@
-import threading
+import sys
+# import threading
 import comm
 import serial
 import time
 import struct
 import binascii
 import rospy
+import pdb
+import asrl_sensor_msgs.msg
 from callbackFuncSerial import serial_received
 
 from lib import command
@@ -25,8 +28,12 @@ class SerialComm(comm.Comm):
     data = ""
     lengthByte = 0
     lengthCheck = 0
+    sermsg = asrl_sensor_msgs.msg.SerialData()
 
     def __init__(self, port):
+        self.pub_serial= rospy.Publisher('/serial_node/serial_send', asrl_sensor_msgs.msg.SerialData)
+        print "Serial Open"
+        '''
         threading.Thread.__init__(self)
         self.ser = serial.Serial(
             port=port,
@@ -34,7 +41,6 @@ class SerialComm(comm.Comm):
         self.ser.open()
         self.ser.flushInput()   # discard input from previous runs
         print 'Serial Open:', self.ser.isOpen()
-        '''
         self.ser.close()
         print self.ser.isOpen()
         '''
@@ -57,9 +63,16 @@ class SerialComm(comm.Comm):
         raise NotImplementedError("subscribe() not implemented")
 
     def send_command(self, status, type, data):
+        self.sermsg.stamp = rospy.Time.now()
+        self.sermsg.data = self.form_payload(status, type, data)
+        print "sermsg=", self.sermsg
+        pdb.set_trace()
+        self.pub_serial(self.sermsg)
+        '''
         data = self.form_payload(status, type, data)
         self.ser.write(data)
-
+        '''
+        
 # should wait until gets consecutive complementary bytes
 # should also go back to wait state if exceeds max packet length or has other error
     def poll(self):
@@ -97,12 +110,16 @@ class SerialComm(comm.Comm):
                 # print "command status=" + str(ord(self.data[0])),
                 # print "command type=" + hex(ord(self.data[1]))
                 serial_received(self.data)  # process serial packet
+
+                #####  DELAY TO AVOID STARVING PROCESSES
+                # rospy.sleep(0.005)  # sleep for 5 ms after processing telem packet
+                time.sleep(0.005)  # sleep but don't stop ROS
                 # receiveddata = struct.unpack('16h', self.data)
                 # print 'Checksum OK. checksum =', hex(checksum), ' sum =', hex(sum)
                 self.data = ""        
                 self.SerialCommState = SerialCommState.Length # ready for next packet
                 time2 = rospy.get_time()
-                print "serial poll time", str(time1) + " " + str(time2 - time1) 
+                # print "serial poll time", str(time1) + " " + str(time2 - time1)
             else:
                 print 'Checksum error. checksum =', hex(checksum), ' sum =', hex(sum)  
                 self.data = ""

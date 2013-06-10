@@ -37,12 +37,14 @@
 import roslib
 roslib.load_manifest('Turner25')
 import rospy
+import pdb
 import turtlesim.msg
 import sensor_msgs.msg
 import std_msgs.msg
+
 # from imageproc.robot_init import robot_init
 import imageproc.shared
-import imageproc.serial_comm_nothread
+import imageproc.serial_comm
 import imageproc.run_robot_class
 
 
@@ -61,8 +63,9 @@ if __name__ == '__main__':
 
     try:
         print 'initializing robot'
-        serial = imageproc.serial_comm_nothread.SerialComm(device)
-        serial.start()
+        # pdb.set_trace()
+        serial = imageproc.serial_comm.SerialComm(device)
+        # serial.start()  -- don't start, will run when it gets published serial topic
         # import pdb; pdb.set_trace()  # if needed to trace during debug
         Robot = imageproc.run_robot_class.RunRobot(robotname, serial)
         Robot.robot_ready = False
