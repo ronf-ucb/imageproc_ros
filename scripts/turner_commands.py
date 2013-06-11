@@ -41,11 +41,14 @@ import pdb
 import turtlesim.msg
 import sensor_msgs.msg
 import std_msgs.msg
+import asrl_sensor_msgs.msg
 
 # from imageproc.robot_init import robot_init
+import serial_pkt_rcv
 import imageproc.shared
 import imageproc.serial_comm
 import imageproc.run_robot_class
+from imageproc.lib import command
 
 
 def stopRobot():
@@ -63,11 +66,27 @@ if __name__ == '__main__':
 
     try:
         print 'initializing robot'
-        # pdb.set_trace()
         serial = imageproc.serial_comm.SerialComm(device)
+        # pdb.set_trace()
+        # topic for handling serial from robot - needs to be ready before Robot.init
+        rospy.Subscriber('/serial_node/serial_receive',
+                     asrl_sensor_msgs.msg.SerialData,
+                     serial_pkt_rcv.handle_serial_receive, None, 1)  # queue size 1
+
         # serial.start()  -- don't start, will run when it gets published serial topic
         # import pdb; pdb.set_trace()  # if needed to trace during debug
         Robot = imageproc.run_robot_class.RunRobot(robotname, serial)
+                # topic for commanded leg velocities from controller node
+        rospy.Subscriber('velCmd',
+                     turtlesim.msg.Velocity,
+                     Robot.callback_command,
+#                     handle_command,
+                     robotname)
+# topic for starting and starting robot
+        rospy.Subscriber('RunTime', 
+                     std_msgs.msg.Float32,
+                     Robot.callback_runtime)
+        
         Robot.robot_ready = False
         Robot.runtime = 0.0    # initial run time set to 0 sec
         Robot.robot_ready= Robot.init()   # talk to IP, initialize control, etc
@@ -76,19 +95,12 @@ if __name__ == '__main__':
 ##        print 'starting robot'
 ##        Robot.start()       # starts background process (from threading library)
     except rospy.ROSInterruptException:
+        print 'ROS Interrupt Exception'
         pass
     
    
-# topic for commanded leg velocities from controller node
-    rospy.Subscriber('velCmd',
-                     turtlesim.msg.Velocity,
-                     Robot.callback_command,
-#                     handle_command,
-                     robotname)
-# topic for starting and starting robot
-    rospy.Subscriber('RunTime', 
-                     std_msgs.msg.Float32,
-                     Robot.callback_runtime)
+
+
 
     print "robot_ready = ", Robot.robot_ready
     Robot.run()       # run robot using callback messages

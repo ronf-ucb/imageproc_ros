@@ -32,6 +32,7 @@ class SerialComm(comm.Comm):
 
     def __init__(self, port):
         self.pub_serial= rospy.Publisher('/serial_node/serial_send', asrl_sensor_msgs.msg.SerialData)
+        self.temp_test = 5
         print "Serial Open"
         '''
         threading.Thread.__init__(self)
@@ -55,7 +56,8 @@ class SerialComm(comm.Comm):
 
     def stop(self):
         self.running = False
-        self._Thread__stop()
+        rospy.signal_shutdown('Stop in serial_comm')
+        # self._Thread__stop()
 
 
     def subscribe(self, function):
@@ -65,9 +67,9 @@ class SerialComm(comm.Comm):
     def send_command(self, status, type, data):
         self.sermsg.stamp = rospy.Time.now()
         self.sermsg.data = self.form_payload(status, type, data)
-        print "sermsg=", self.sermsg
-        pdb.set_trace()
-        self.pub_serial(self.sermsg)
+        # print "send sermsg.data=", map(hex,map(ord, self.sermsg.data))
+        # pdb.set_trace()
+        self.pub_serial.publish(self.sermsg)
         '''
         data = self.form_payload(status, type, data)
         self.ser.write(data)

@@ -46,7 +46,7 @@ import pdb # python debugger
 import shared
 PI = 3.1415926536
 MPOS_SCALE = 2.0 * PI/ (2**16)
-PKT_DELAY = 0.05   # delay between packets to avoid overflow of buffers
+PKT_DELAY = 0.3   # delay between packets to avoid overflow of buffers
 
 smsg = sensor_msgs.msg.JointState()
 imsg = sensor_msgs.msg.Imu()    # IMU message
@@ -96,8 +96,8 @@ class RunRobot:
         shared.pkts = shared.telem_index
         print "RunRobot.init: Done Initializing"
         self.robot_ready = True
-        # print 'init done. <cr> to continue:'
-        # x = raw_input()
+        print 'init done. <cr> to continue:'
+        x = raw_input()
         return True
 
 # set robot control gains
@@ -160,7 +160,8 @@ class RunRobot:
 # get one packet of PID data from robot
     # with python, assume that variable time for call back
     def getPIDdata(self):
- #       pdb.set_trace()
+        print 'getPIDData'
+        pdb.set_trace()
         count = 0
         got_pkt = False
         shared.pkts = shared.telem_index # last packet number received
@@ -201,7 +202,8 @@ class RunRobot:
     # get one packet of PID data from robot
     # with python, assume that variable time for call back
     def getPIDdata_old(self):
- #       pdb.set_trace()
+        print 'getPIDData'
+        pdb.set_trace()
         count = 0
         got_pkt = False
         shared.pkts = shared.telem_index # last packet number received

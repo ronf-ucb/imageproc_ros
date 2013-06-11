@@ -53,13 +53,13 @@ lengthCheck = 0
 
 def handle_serial_receive(msg):
     global state_initialized
-    print "msg=", msg
+    # print "msg=", msg
     pkt_time = msg.stamp
     print "secs "+ str(msg.stamp.secs) + " nsecs: " + str(msg.stamp.nsecs)
     serial_data = msg.data
-    print "serial data =" + msg.data
-    print "length of data =" + str(len(serial_data))
-    # pdb.set_trace()
+    print "serial receive data =" , map(hex,map(ord, msg.data))
+    #print "length of data =" + str(len(serial_data))
+    # pdb.set_trace() 
     for i in range(0,len(serial_data)):
         handle_byte(serial_data[i])
 
@@ -72,6 +72,7 @@ def handle_byte(byte):
     global  lengthToGo, data, lengthByte, lengthCheck
     if SerialCommState == StateLength:
         lengthByte = ord(byte)
+        # print 'lengthByte=', lengthByte
         SerialCommState = StateChLength
     elif SerialCommState == StateChLength:
         lengthCheck = ord(byte)
@@ -79,40 +80,42 @@ def handle_byte(byte):
         if lengthByte + lengthCheck is 0xff:
             SerialCommState = StateData
             lengthToGo = lengthByte - 3
+            print 'lengthToGo =', lengthToGo
         else:
             SerialCommState = StateChLength
             lengthByte = lengthCheck # check if last byte received is length byte
+            print 'length check fail. back to StateChLength'
     elif SerialCommState == StateData:
         if lengthToGo > 0:
             data = data + byte
             # print data
             lengthToGo = lengthToGo - 1
-        else:
+        else:  # already read last byte check checksum
             SerialCommState = StateChecksum
-    elif SerialCommState == StateChecksum:
-        # pdb.set_trace()
-        checksum = byte
-        sum = 0xff
-        for c in data:
-            sum = sum + ord(c)
-        sum = sum & 0xff
-        if checksum is sum:
-            #print "read success=" + binascii.hexlify(data)
-            # print "command status=" + str(ord(data[0])),
-            # print "command type=" + hex(ord(data[1]))
-            SerialSuccess = True
-            serial_received(data)  # process serial packet
-            # receiveddata = struct.unpack('16h', data)
-            # print 'Checksum OK. checksum =', hex(checksum), ' sum =', hex(sum)
-            data = ""        
-            SerialCommState = StateLength # ready for next packet
-        else:
-            print 'Checksum error. checksum =', hex(checksum), ' sum =', hex(sum)
-            SerialSuccess = False
-            data = ""
-            lengthByte = checksum # check if last byte received is length byte
-            SerialCommState = StateChLength # ready for next packet
-   
+            checksum = ord(byte)
+            print 'End of lengthToGo. Checksum =', checksum
+            # pdb.set_trace() 
+            sum = 0xff
+            for c in data:
+                sum = sum + ord(c)
+            sum = sum & 0xff
+            if checksum is sum:
+                #print "read success=" + binascii.hexlify(data)
+                # print "command status=" + str(ord(data[0])),
+                # print "command type=" + hex(ord(data[1]))
+                SerialSuccess = True
+                serial_received(data)  # process serial packet
+                # receiveddata = struct.unpack('16h', data)
+                # print 'Checksum OK. checksum =', hex(checksum), ' sum =', hex(sum)
+                data = ""        
+                SerialCommState = StateLength # ready for next packet
+            else:
+                print 'Checksum error. checksum =', hex(checksum), ' sum =', hex(sum)
+                SerialSuccess = False
+                data = ""
+                lengthByte = checksum # check if last byte received is length byte
+                SerialCommState = StateChLength # ready for next packet
+       
     
 if __name__ == '__main__':
     rospy.init_node('SerialPacket')

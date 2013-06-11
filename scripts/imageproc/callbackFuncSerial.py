@@ -12,7 +12,7 @@ def serial_received(rf_data):
     status = ord(rf_data[0])
     type = ord(rf_data[1])
     data = rf_data[2:]
-    # print 'callback cmd:', hex(type)
+    print 'callback cmd:', hex(type)
     if (type == command.GET_IMU_DATA):
         datum = unpack('l6h', data)
         #datum = unpack('l3f', data)
@@ -40,7 +40,8 @@ def serial_received(rf_data):
         print "Set PID gains readback"
         gains = unpack('10h', data)
         print gains
-        shared.motor_gains_set = True 
+        shared.motor_gains_set = True
+        # pdb.set_trace()
     elif (type == command.SET_STEERING_GAINS):
         print "Set Steering gains"
         gains = unpack('5h', data)
