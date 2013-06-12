@@ -114,7 +114,6 @@ class SerialComm(comm.Comm):
                 serial_received(self.data)  # process serial packet
 
                 #####  DELAY TO AVOID STARVING PROCESSES
-                # rospy.sleep(0.005)  # sleep for 5 ms after processing telem packet
                 time.sleep(0.005)  # sleep but don't stop ROS
                 # receiveddata = struct.unpack('16h', self.data)
                 # print 'Checksum OK. checksum =', hex(checksum), ' sum =', hex(sum)

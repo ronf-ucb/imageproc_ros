@@ -46,7 +46,7 @@ import pdb # python debugger
 import shared
 PI = 3.1415926536
 MPOS_SCALE = 2.0 * PI/ (2**16)
-PKT_DELAY = 0.05   # delay between packets to avoid overflow of buffers
+PKT_DELAY = 0.02   # delay between packets to avoid overflow of buffers
 
 smsg = sensor_msgs.msg.JointState()
 imsg = sensor_msgs.msg.Imu()    # IMU message
@@ -94,7 +94,7 @@ class RunRobot:
         self.comm.send_command(0, command.ZERO_POS,  "Zero motor")
         time.sleep(0.5)
         print 'RunRobot.init: read motorpos and zero'
-        self.getPIDdata()   # read initial state from robot, and also first packet number
+        # self.getPIDdata()   # read initial state from robot, and also first packet number
         time.sleep(0.1) # give time for serial call back
         shared.pkts = shared.telem_index
         print "RunRobot.init: Done Initializing"
@@ -111,7 +111,7 @@ class RunRobot:
             count = count + 1
             self.comm.send_command(0, command.SET_PID_GAINS, pack('10h',*motorgains))
             time.sleep(2)
-            pdb.set_trace()
+            # pdb.set_trace()
             # print 'set gain loop. continue:'
             # x = raw_input()
             if count > 20:
@@ -163,7 +163,7 @@ class RunRobot:
 
 # get one packet of PID data from robot
     # with python, assume that variable time for call back
-    def getPIDdata(self):
+    def getPIDdata(self,event):
         # print 'getPIDData'
         # pdb.set_trace()
         count = 0
@@ -173,15 +173,19 @@ class RunRobot:
         dummy_data = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
         # data format '=LLll'+13*'h' 
         shared.imudata = [] #reset stored data
-        time1 = rospy.get_time()
-        self.comm.send_command(0, command.GET_PID_TELEMETRY, pack('h',0))
-        time2 = rospy.get_time()
+        # print 'next getPIDdata. <cr> to continue:'
+        # x = raw_input()
         if self.debug_mode:
-            print 'getPID send_command times', str(time2- time1)
+            time1 = rospy.get_time()
+        self.comm.send_command(0, command.GET_PID_TELEMETRY, pack('h',0))
+        if self.debug_mode:
+            time2 = rospy.get_time()
+        if self.debug_mode:
+             print 'getPID send_command times', str(time2- time1)
         # use rospy functions= maybe gives time for operations?
         # rospy.sleep(PKT_DELAY)
         time.sleep(PKT_DELAY)   # 30 Hz, to go with camera frame rate
-        time3 = rospy.get_time()
+        # time3 = rospy.get_time()
         if shared.pkts != old_count:
             self.data = shared.imudata[0]  # convert string list to numbers
             self.debug_mode = False # received new packet, exit debug mode
@@ -207,60 +211,7 @@ class RunRobot:
          # print "PID times send_command, sleep", str(time2 - time1) + "  " + str(time3 - time2)
         self.publish_state(self.data)
 
-    # get one packet of PID data from robot
-    # with python, assume that variable time for call back
-    def getPIDdata_old(self):
-        print 'getPIDData'
-        pdb.set_trace()
-        count = 0
-        got_pkt = False
-        shared.pkts = shared.telem_index # last packet number received
-        old_count = shared.pkts
-        dummy_data = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-        # data format '=LLll'+13*'h' 
-        shared.imudata = [] #reset stored data
-        time1 = rospy.get_time()
-        self.comm.send_command(0, command.GET_PID_TELEMETRY, pack('h',0))
-        time2 = rospy.get_time()
-        time.sleep(PKT_DELAY/5)   # 30 Hz, to go with camera frame rate
-        time3 = rospy.get_time()
-        if shared.pkts != old_count:
-            self.data = shared.imudata[0]  # convert string list to numbers
-        else:  
-                 ### try to wait some more, else fail and will resend packet next time
-            while count < 10:
-                time.sleep(PKT_DELAY/5)
-                if shared.pkts != old_count:
-                    got_pkt = True
-                    break
-                count = count +1
-            if got_pkt == True:
-                self.data = shared.imudata[0]  # convert string list to numbers
-            else:
-                shared.imudata.append(dummy_data) # use dummy data
-                self.data = shared.imudata[0]
-                print "No Return PID Packet!"
-            print "Retry after %f seconds." %((1 + count) * PKT_DELAY/5),
-            print "Got only %d packets" %(shared.pkts)
-            rospy.logerr('getPIDdata: retry GET_PID_TELEMETRY')
-
-            # self.comm.send_command(0, command.GET_PID_TELEMETRY, pack('h',0))
-##               if count > 5:
-##                print 'Killed SendCommand. No return packet.'
-##                rospy.logfatal('getPIDdata: no return packet')
-##                rospy.signal_shutdown('Killed node. No return packet!')
-##                shared.imudata.append(dummy_data) # use dummy data
-##                break
-        print "PID times send_command, sleep", str(time2 - time1) + "  " + str(time3 - time2)
-        self.publish_state(self.data)
-
-      #  print 'index =', data[0]
-      #  print 'time = ', data[1]    # time is in microseconds
-      #  print 'mpos=', data[2:4]    # motor position is 64K/rev
-      #  print 'pwm=',data[4:6]
-      #  print 'imu=',data[6:13]
-      #  print 'emf=',data[13:16]
-
+    
     def publish_state(self, data):
         smsg.header.seq = data[0]   # sequence number is overwritten by publish
         smsg.header.stamp.secs = int(data[1]/1e6)
@@ -297,32 +248,38 @@ class RunRobot:
     def run(self):
         # pdb.set_trace()  # if needed to trace during debug
         print 'starting run_robot_class.run with PKT_DELAY=', str(PKT_DELAY)
-        while True:
-            vel = self.linear_command
-            turn_rate = self.angular_command
-            leftTime = int(4*cycle * (vel - turn_rate/2) / LEG_VELOCITY)
-            rightTime = int(4 * cycle * (vel + turn_rate/2) / LEG_VELOCITY)
 
-        # probably should normalize, but can at least bound leg run time
-            leftTime=max(0,leftTime)
-            leftTime=min(4*cycle,leftTime)
-            rightTime=max(0,rightTime)
-            rightTime=min(4*cycle,rightTime)
-
-            # print 'setting motor time left=%d  right=%d' %(leftTime, rightTime)
-            currentTime = time.time()   # time in seconds, floating point
-            endTime = currentTime + (4.0*cycle)/1000.0 # 4 stride motion segments
-            if (currentTime < self.runtime) & (self.robot_ready == True): 
-                self.setThrustClosedLoop(leftTime, rightTime)
-    # get telemetry data while closed loop is running
-    # can't trust robot time - need to have python timer as well
-    #    print 'currentTime = %f, endTime = %f' %(currentTime, endTime)
-            while(currentTime < endTime):
-    #       time.sleep(0.1) # sample data every 0.1 sec
-                self.getPIDdata()  # delay is in getPIDdata()
-                self.data = shared.imudata[0]
-                currentTime = time.time()  # time in milliseconds
-#                print 'index =', self.data[0],'currentTime=',self.data[1]/1000
-       
-
+        rospy.Timer(rospy.Duration(0.03333), self.getPIDdata, False)
+        
+      
+        
+        
+##        while True:           
+##            vel = self.linear_command
+##            turn_rate = self.angular_command
+##            leftTime = int(4*cycle * (vel - turn_rate/2) / LEG_VELOCITY)
+##            rightTime = int(4 * cycle * (vel + turn_rate/2) / LEG_VELOCITY)
+##
+##        # probably should normalize, but can at least bound leg run time
+##            leftTime=max(0,leftTime)
+##            leftTime=min(4*cycle,leftTime)
+##            rightTime=max(0,rightTime)
+##            rightTime=min(4*cycle,rightTime)
+##
+##            # print 'setting motor time left=%d  right=%d' %(leftTime, rightTime)
+##            currentTimerqt = time.time()   # time in seconds, floating point
+##            endTime = currentTime + (4.0*cycle)/1000.0 # 4 stride motion segments
+##            if (currentTime < self.runtime) & (self.robot_ready == True): 
+##                self.setThrustClosedLoop(leftTime, rightTime)
+##    # get telemetry data while closed loop is running
+##    # can't trust robot time - need to have python timer as well
+##    #    print 'currentTime = %f, endTime = %f' %(currentTime, endTime)
+##            while(currentTime < endTime):
+##    #       time.sleep(0.1) # sample data every 0.1 sec
+##                self.getPIDdata()  # delay is in getPIDdata()
+##                self.data = shared.imudata[0]
+##                currentTime = time.time()  # time in milliseconds
+###                print 'index =', self.data[0],'currentTime=',self.data[1]/1000
+##       
+##
 
