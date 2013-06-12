@@ -46,13 +46,15 @@ import pdb # python debugger
 import shared
 PI = 3.1415926536
 MPOS_SCALE = 2.0 * PI/ (2**16)
-PKT_DELAY = 0.3   # delay between packets to avoid overflow of buffers
+PKT_DELAY = 0.05   # delay between packets to avoid overflow of buffers
 
 smsg = sensor_msgs.msg.JointState()
 imsg = sensor_msgs.msg.Imu()    # IMU message
 # sermsg = asrl_sensor_msgs.msg.SerialData()
 
 LEG_VELOCITY = 2.0 # maximum leg m/sec
+
+
 
 class RunRobot:
     robot_ready = False
@@ -61,6 +63,7 @@ class RunRobot:
     data = []   # telemetry packet returned from robot
     runtime = 0.0
     robot_onoff = False
+    debug_mode = False
 
     def __init__(self, name,comm):
         self.robotname = name
@@ -96,8 +99,8 @@ class RunRobot:
         shared.pkts = shared.telem_index
         print "RunRobot.init: Done Initializing"
         self.robot_ready = True
-        print 'init done. <cr> to continue:'
-        x = raw_input()
+        # print 'init done. <cr> to continue:'
+        # x = raw_input()
         return True
 
 # set robot control gains
@@ -108,6 +111,7 @@ class RunRobot:
             count = count + 1
             self.comm.send_command(0, command.SET_PID_GAINS, pack('10h',*motorgains))
             time.sleep(2)
+            pdb.set_trace()
             # print 'set gain loop. continue:'
             # x = raw_input()
             if count > 20:
@@ -160,8 +164,8 @@ class RunRobot:
 # get one packet of PID data from robot
     # with python, assume that variable time for call back
     def getPIDdata(self):
-        print 'getPIDData'
-        pdb.set_trace()
+        # print 'getPIDData'
+        # pdb.set_trace()
         count = 0
         got_pkt = False
         shared.pkts = shared.telem_index # last packet number received
@@ -172,12 +176,15 @@ class RunRobot:
         time1 = rospy.get_time()
         self.comm.send_command(0, command.GET_PID_TELEMETRY, pack('h',0))
         time2 = rospy.get_time()
+        if self.debug_mode:
+            print 'getPID send_command times', str(time2- time1)
         # use rospy functions= maybe gives time for operations?
         # rospy.sleep(PKT_DELAY)
         time.sleep(PKT_DELAY)   # 30 Hz, to go with camera frame rate
         time3 = rospy.get_time()
         if shared.pkts != old_count:
             self.data = shared.imudata[0]  # convert string list to numbers
+            self.debug_mode = False # received new packet, exit debug mode
         else:  
                  ### try to wait some more, else fail and will resend packet next time
             while count < 10:
@@ -192,6 +199,7 @@ class RunRobot:
                 shared.imudata.append(dummy_data) # use dummy data
                 self.data = shared.imudata[0]
                 print "No Return PID Packet!"
+                self.debug_mode = True
             print "Retry after %f seconds." %((1 + count) * PKT_DELAY/5),
             print "Got only %d packets" %(shared.pkts)
             rospy.logerr('getPIDdata: retry GET_PID_TELEMETRY')

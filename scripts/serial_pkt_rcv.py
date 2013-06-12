@@ -55,9 +55,9 @@ def handle_serial_receive(msg):
     global state_initialized
     # print "msg=", msg
     pkt_time = msg.stamp
-    print "secs "+ str(msg.stamp.secs) + " nsecs: " + str(msg.stamp.nsecs)
+    #print "secs "+ str(msg.stamp.secs) + " nsecs: " + str(msg.stamp.nsecs)
     serial_data = msg.data
-    print "serial receive data =" , map(hex,map(ord, msg.data))
+    #print "serial receive data =" , map(hex,map(ord, msg.data))
     #print "length of data =" + str(len(serial_data))
     # pdb.set_trace() 
     for i in range(0,len(serial_data)):
@@ -80,7 +80,7 @@ def handle_byte(byte):
         if lengthByte + lengthCheck is 0xff:
             SerialCommState = StateData
             lengthToGo = lengthByte - 3
-            print 'lengthToGo =', lengthToGo
+            #print 'lengthToGo =', lengthToGo
         else:
             SerialCommState = StateChLength
             lengthByte = lengthCheck # check if last byte received is length byte
@@ -93,7 +93,7 @@ def handle_byte(byte):
         else:  # already read last byte check checksum
             SerialCommState = StateChecksum
             checksum = ord(byte)
-            print 'End of lengthToGo. Checksum =', checksum
+            # print 'End of lengthToGo. Checksum =', checksum
             # pdb.set_trace() 
             sum = 0xff
             for c in data:

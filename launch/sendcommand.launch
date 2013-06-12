@@ -20,7 +20,7 @@
 
 <!-- launch-prefix="nice -n 15 xterm -bg white -fg purple -geometry 64x8+175+475 -title 'rostopic RunTime' -e" **** don't need to monitor RunTime... -->
 
-
+	<!--  -->
  <!-- **************** monitor robot state output ************** -->
 
 <!-- monitor robot mpos, back emf, pwm -->

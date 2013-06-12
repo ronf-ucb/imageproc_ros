@@ -69,9 +69,10 @@ if __name__ == '__main__':
         serial = imageproc.serial_comm.SerialComm(device)
         # pdb.set_trace()
         # topic for handling serial from robot - needs to be ready before Robot.init
+        # queue size needs to handle serial packets being split in 3 pieces
         rospy.Subscriber('/serial_node/serial_receive',
                      asrl_sensor_msgs.msg.SerialData,
-                     serial_pkt_rcv.handle_serial_receive, None, 1)  # queue size 1
+                     serial_pkt_rcv.handle_serial_receive, None, 6)  # queue size 6
 
         # serial.start()  -- don't start, will run when it gets published serial topic
         # import pdb; pdb.set_trace()  # if needed to trace during debug
